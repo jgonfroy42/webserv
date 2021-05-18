@@ -14,11 +14,11 @@ LEGEND:
 
 *variables spécifiques au serveur
 	// SERVER_NAME
-	/  SERVER_SOFTWARE: Le nom et la version du serveur HTTP répondant à la requête. (Format : nom/version)[Donc normalement toujours HTTP/1.1]
-	   GATEWAY_INTERFACE: La révision de la spécification CGI que le serveur utilise. (Format : CGI/révision)
+	/ SERVER_SOFTWARE: Le nom et la version du serveur HTTP répondant à la requête. (Format : nom/version)
+	// GATEWAY_INTERFACE: La révision de la spécification CGI que le serveur utilise. (Format : CGI/révision)
 
 *variables spécifiques à la requête
-	// SERVER_PROTOCOL
+	/ SERVER_PROTOCOL
 	// SERVER_PORT
 	// PATH_INFO:Le chemin supplémentaire du script tel que donné par le client. Par exemple, si le serveur héberge le script « /cgi-bin/monscript.cgi » [=SCRIPT_NAME]et que le client demande l'url « http://serveur.org/cgi-bin/monscript.cgi/marecherche », alors PATH_INFO contiendra « marecherche ».[il faut donc déterminer avant le ou les chemins du ou des scripts]
 	// AUTH_TYPE
@@ -37,6 +37,9 @@ LEGEND:
 #include <string>
 #include <map>
 #include <iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 typedef std::map<std::string, std::string> map;
 typedef std::string string;
@@ -66,7 +69,7 @@ map		initMetaMap()
 	metaMap["AUTH_TYPE"] = string();
 	metaMap["CONTENT_LENGTH"] = string();
 	metaMap["CONTENT_TYPE"] = string();
-	metaMap["GATEWAY_INTERFACE"] = string();
+	metaMap["GATEWAY_INTERFACE"] = "CGI/1.1";//choix statique à confirmer
 	metaMap["PATH_INFO"] = string();
 	metaMap["PATH_TRANSLATED"] = string();
 	metaMap["QUERY_STRING"] = string();
@@ -79,7 +82,7 @@ map		initMetaMap()
 	metaMap["SERVER_NAME"] = string();
 	metaMap["SERVER_PORT"] = string();
 	metaMap["SERVER_PROTOCOL"] = string();
-	metaMap["SERVER_SOFTWARE"] = "HTTP/1.1";//choix statique à confirmer
+	metaMap["SERVER_SOFTWARE"] = "Our webserv";//choix statique à confirmer
 	return metaMap;
 }
 
@@ -88,25 +91,35 @@ int		parseStartLine(map &metaMap, string startLine)
 	string::iterator it_begin = startLine.begin();
 	string::iterator it_end = it_begin + startLine.find(" ");
 	metaMap["REQUEST_METHOD"] = string(it_begin, it_end++);
+	std::cout << metaMap["REQUEST_METHOD"];
 	it_begin = it_end;
 	while (*it_end && *it_end != ' ')
 		it_end++;
-	metaMap["REQUEST_URI"] = string(it_begin, it_end++);
+	metaMap["REQUEST_URI"] = string(++it_begin, it_end++);
+	std::cout << metaMap["REQUEST_URI"];
+
 	it_begin = it_end;
 	while (*it_end && *it_end != '\n')
 		it_end++;
 	metaMap["SERVER_PROTOCOL"] = string(it_begin, it_end);
-	int pos = startLine.find(metaMap["SCRIPT_NAME"]);
-	pos += metaMap["SCRIPT_NAME"].size() + 1;
+	std::cout << metaMap["SERVER_PROTOCOL"];
+	size_t pos;
 	int len = 0;
-	while(startLine[pos + len] && startLine[pos + len] != ' ' && startLine[pos + len] != '?')
+	if ((pos = startLine.find(metaMap["SCRIPT_NAME"])) != string::npos)
+	{
+		pos += metaMap["SCRIPT_NAME"].size() + 1;
+		while(startLine[pos + len] && startLine[pos + len] != ' ' && startLine[pos + len] != '?')
 		len++;
-	metaMap["PATH_INFO"] = string(startLine, pos, len);
-	pos = startLine.find('?') + 1;
-	len = 0;
-	while(startLine[pos + len] && startLine[pos + len] != ' ')
-		len++;
-	metaMap["QUERY_STRING"] = string(startLine, pos, len);		
+		metaMap["PATH_INFO"] = string(startLine, pos, len);
+	}
+	if ((pos = startLine.find('?')) != string::npos)
+	{
+		pos += 1;
+		len = 0;
+		while(startLine[pos + len] && startLine[pos + len] != ' ')
+			len++;
+		metaMap["QUERY_STRING"] = string(startLine, pos, len);
+	}		
 	return 0;
 }
 
@@ -124,7 +137,7 @@ int		getMetaValue(map &metaMap, string request, string metaVar, string toFind)
 	return 0;//choix éditorial a confirmer
 }
 
-map		getMetaMap(string request)
+map		getCGIEnv(const string request, const sockaddr_in client_addr)
 {
 	map metaMap = initMetaMap();//choix d'initialisation à confirmer
 	parseStartLine(metaMap, string(request, 0, request.find('\n')));
@@ -140,15 +153,17 @@ map		getMetaMap(string request)
 	}
 	getMetaValue(metaMap, request, "CONTENT_LENGTH", "Content-Length: ");
 	getMetaValue(metaMap, request, "CONTENT_TYPE", "Content-Type: ");
+	char *client_IP = inet_ntoa(client_addr.sin_addr);//fonction non autorisee... peut-etre peut-on envoyer sin_addr ou client_addr directement au CGI (mais pas string donc il faut struct plutot que map)
+	metaMap["REMOTE_ADDR"] = string(client_IP);
 	return metaMap;
 }
 
-void	displayMap(map toDisplay)
+void	displayCGIEnv(map toDisplay)
 {
-	std::cout << "<start>\n";
+	std::cout << "CGI ENV <start>" << std::endl;
 	for (map::iterator it=toDisplay.begin(); it!=toDisplay.end(); it++)
-		std::cout<<it->first << " = " << it->second << "%\n";
-	std::cout << "<end>" << std::endl;
+		std::cout<<it->first << " = " << it->second << std::endl;
+	std::cout << "CGI ENV <end>" << std::endl;
 }
 
 /* int		main(int argc, char **argv)//main de test
