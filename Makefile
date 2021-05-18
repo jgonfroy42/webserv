@@ -9,7 +9,7 @@ DIR_OBJS	= objs/
 DIR_INC		= ./includes/
 DIR_LIB		= ./libft/
 
-F_SRCS		= dirty_example/server.cpp
+F_SRCS		= parsing/get_cgi_env.cpp main.cpp
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 
 OBJS		= $(addprefix $(DIR_OBJS), $(F_SRCS:.cpp=.o))
