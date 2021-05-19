@@ -14,7 +14,7 @@
 #include "../../libft/ft_bzero.c"//SALE
 #include "../../libft/ft_calloc.c"//SALE
 #include "../../libft/ft_itoa.c"//SALE
-#include "../parsing/get_cgi_env.cpp"//SALE
+#include "../parsing_request.cpp"//SALE
 
 
 // ATTENTION CE N'EST PAS C++98 COMPLIANT, J'AI EU LA FLEMME DE FAIRE UN ITOA LIGNE 100 & 117

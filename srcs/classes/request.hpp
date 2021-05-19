@@ -1,20 +1,9 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
-
-# include <iostream>
-# include <string>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <map>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+# include <map>
 
 typedef std::string string;
-typedef std::map<std::string, std::string> map;
+typedef std::map<std::string, std::string> map_str_str;
 
 class Request
 {
@@ -25,27 +14,26 @@ class Request
 		Request(string requestStr, const sockaddr_in *client_addr);
 		Request( Request const & src );
 		~Request();
-		string	get_method() const;
-		map		get_headers() const;
-		string	get_body() const;
-		map		get_CGI_env() const;
+
+		bool			is_method_valid() const;
+		bool			is_CGI() const;
+		string			get_method() const;
+		map_str_str		*get_headers() const;
+		string			get_body() const;
+		map_str_str		*get_CGI_env() const;
 
 		Request &		operator=( Request const & rhs );
 
 	private:
-		string		_method;
-		map			_headers;
-		string		_body;
-		map			_CGI_env;
+		string			_method;
+		map_str_str		*_headers;
+		string			_body;
+		map_str_str		*_CGI_env;
 	//	sockaddr_in	*_client_addr; //useful pour le REMOTE_ADDR?
 	//	socklen_t	_addr_len; //idem: useful?
 };
 
 std::ostream &			operator<<( std::ostream & o, Request const & i );
 
-map		getCGIEnv(const string request, const sockaddr_in *client_addr);
-string	getBody(string request);
-map		getRequestHeaders(const string requestStr);
-void	displayMap(map toDisplay);
 
 #endif /* ********************************************************* REQUEST_H */

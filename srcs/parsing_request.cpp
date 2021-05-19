@@ -1,14 +1,9 @@
-#include <string>
-#include <map>
-#include <iostream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "../webserv.hpp"
 
-typedef std::map<std::string, std::string> map;
+typedef std::map<std::string, std::string> map_str_str;
 typedef std::string string;
 
-int		getHeaderValue(map &headers, string request, string header)
+int		getHeaderValue(map_str_str &headers, string request, string header)
 {
 	size_t pos = 0;
 	int len = 0;
@@ -22,7 +17,7 @@ int		getHeaderValue(map &headers, string request, string header)
 	return 0;//choix éditorial a confirmer
 }
 
-void	initHeaders(map &headers)
+void	initHeaders(map_str_str &headers)
 {
 	headers["Accept-Charset"] = string();
 	headers["Accept-Language"] = string();
@@ -36,9 +31,9 @@ void	initHeaders(map &headers)
 	headers["User-Agent"] = string();
 }
 
-map		getRequestHeaders(const string requestStr)
+map_str_str		getRequestHeaders(const string requestStr)
 {
-	map	headers;
+	map_str_str	headers;
 
 	initHeaders(headers);
 	getHeaderValue(headers, requestStr, "Accept-Charset");
@@ -66,9 +61,9 @@ string	getBody(string request)
 		return string();
 }
 
-map		initMetaMap()
+map_str_str		initMetaMap()
 {
-	map metaMap;
+	map_str_str metaMap;
 	metaMap["AUTH_TYPE"] = string();
 	metaMap["CONTENT_LENGTH"] = string();
 	metaMap["CONTENT_TYPE"] = string();
@@ -89,7 +84,7 @@ map		initMetaMap()
 	return metaMap;
 }
 
-int		parseStartLine(map &metaMap, string startLine)
+int		parseStartLine(map_str_str &metaMap, string startLine)
 {
 	string::iterator it_begin = startLine.begin();
 	string::iterator it_end = it_begin + startLine.find(" ");
@@ -126,7 +121,7 @@ int		parseStartLine(map &metaMap, string startLine)
 	return 0;
 }
 
-int		getMetaValue(map &metaMap, string request, string metaVar, string toFind)
+int		getMetaValue(map_str_str &metaMap, string request, string metaVar, string toFind)
 {
 	size_t pos = 0;
 	int len = 0;
@@ -140,9 +135,9 @@ int		getMetaValue(map &metaMap, string request, string metaVar, string toFind)
 	return 0;//choix éditorial a confirmer
 }
 
-map		getCGIEnv(const string request, const sockaddr_in *client_addr)
+map_str_str		getCGIEnv(const string request, const sockaddr_in *client_addr)
 {
-	map metaMap = initMetaMap();//choix d'initialisation à confirmer
+	map_str_str metaMap = initMetaMap();//choix d'initialisation à confirmer
 	parseStartLine(metaMap, string(request, 0, request.find('\n')));
 	getMetaValue(metaMap, request, "SERVER_NAME", "Host: ");
 	metaMap["SERVER_PORT"] = metaMap["SERVER_NAME"];
