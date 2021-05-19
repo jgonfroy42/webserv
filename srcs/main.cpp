@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <stdlib.h>
+#include "./classes/request.hpp"
 
 #define PORT 8080
 #define PENDING_MAX 10
@@ -61,6 +62,11 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 		//get request
 		recv(new_connexion, &buffer, BUFFER_SIZE, 0);
 		std::cout << buffer << std::endl;
+
+		//parsing request
+		std::string requestStr(buffer);
+		Request request(requestStr, sock_addr);
+		std::cout << request;
 
 /*
 	parsing_request();

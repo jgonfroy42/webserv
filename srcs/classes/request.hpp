@@ -13,7 +13,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
 typedef std::string string;
 typedef std::map<std::string, std::string> map;
 
@@ -23,9 +22,13 @@ class Request
 	public:
 
 		Request();
-		Request(string requestStr, const sockaddr_in client_addr);
+		Request(string requestStr, const sockaddr_in *client_addr);
 		Request( Request const & src );
 		~Request();
+		string	get_method() const;
+		map		get_headers() const;
+		string	get_body() const;
+		map		get_CGI_env() const;
 
 		Request &		operator=( Request const & rhs );
 
@@ -34,12 +37,15 @@ class Request
 		map			_headers;
 		string		_body;
 		map			_CGI_env;
-		sockaddr_in	_client_addr; //useful pour le REMOTE_ADDR?
-		socklen_t	_addr_len; //idem: useful?
+	//	sockaddr_in	*_client_addr; //useful pour le REMOTE_ADDR?
+	//	socklen_t	_addr_len; //idem: useful?
 };
 
 std::ostream &			operator<<( std::ostream & o, Request const & i );
 
-map		getCGIEnv(const string request, const sockaddr_in client_addr);
+map		getCGIEnv(const string request, const sockaddr_in *client_addr);
+string	getBody(string request);
+map		getRequestHeaders(const string requestStr);
+void	displayMap(map toDisplay);
 
 #endif /* ********************************************************* REQUEST_H */

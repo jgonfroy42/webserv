@@ -4,50 +4,23 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-void	initHeaders(map headers)
-{
-	headers["Accept-Charset"] = string();
-	headers["Accept-Language"] = string();
-	headers["Authorization"] = string();
-	headers["Content-Length"] = string();
-	headers["Content-Type"] = string();
-	headers["Date"] = string();
-	headers["Host"] = string();
-	headers["Referer"] = string();
-	headers["Transfer-Encoding"] = string();//also called TE
-	headers["User-Agent"] = string();
-}
-
-
-map		getRequestHeaders(const string requestStr, const map CGIEnv)
-{
-	map	headers;
-
-
-	return headers;
-}
-
 Request::Request()
 {
 }
 
-Request::Request(const string requestStr, const sockaddr_in client_addr)
+Request::Request(const string requestStr, const sockaddr_in *client_addr)
 {
 	_CGI_env = getCGIEnv(requestStr, client_addr);
 	_method = _CGI_env["REQUEST_METHOD"];
-	_headers = getRequestHeaders(requestStr, _CGI_env);
-	_body;
-	_client_addr = client_addr; //useful pour le REMOTE_ADDR pas sous forme de str car fonction pour l'avoir sous forme de str pas autorisee?
+	_headers = getRequestHeaders(requestStr);
+	_body = getBody(requestStr);	
+//	_client_addr = client_addr; //useful pour le REMOTE_ADDR pas sous forme de str car fonction pour l'avoir sous forme de str pas autorisee?
 	//_addr_len; //idem: useful?
-}
-
-class Request	parse_request(string request_str)
-{
-	
 }
 
 Request::Request( const Request & src )
 {
+	(void)src;
 }
 
 
@@ -66,6 +39,7 @@ Request::~Request()
 
 Request &				Request::operator=( Request const & rhs )
 {
+	(void)rhs;
 	//if ( this != &rhs )
 	//{
 		//this->_value = rhs.getValue();
@@ -75,7 +49,15 @@ Request &				Request::operator=( Request const & rhs )
 
 std::ostream &			operator<<( std::ostream & o, Request const & i )
 {
-	//o << "Value = " << i.getValue();
+	o << "--- REQUEST CLASS CONTENT ---" << std::endl;
+	o << "Method: " << i.get_method() << std::endl << std::endl;
+	o << "Headers:" << std::endl;
+	displayMap(i.get_headers());
+	o << std::endl << "Body:" << std::endl << i.get_body() << std::endl;	
+	o << std::endl << "CGI variables:" << std::endl;
+	displayMap(i.get_CGI_env());
+	o << std::endl;	
+
 	return o;
 }
 
@@ -83,6 +65,25 @@ std::ostream &			operator<<( std::ostream & o, Request const & i )
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
+string	Request::get_method() const
+{
+	return(_method);
+}
+
+map		Request::get_headers() const
+{
+	return(_headers);
+}
+
+string	Request::get_body() const
+{
+	return(_body);
+}
+
+map		Request::get_CGI_env() const
+{
+	return(_CGI_env);
+}
 
 
 /*
