@@ -10,7 +10,7 @@ DIR_INC		= ./includes/
 DIR_LIB		= ./libft/
 
 F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp  \
-				status_codes.cpp #build_response.cpp
+				status_codes.cpp build_response.cpp
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 
 OBJS		= $(addprefix $(DIR_OBJS), $(F_SRCS:.cpp=.o))

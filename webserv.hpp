@@ -36,7 +36,7 @@ void			displayMap(map_str_str toDisplay);
 map_str_str		getCGIEnv(const string request, const sockaddr_in *client_addr);
 string			getBody(string request);
 map_str_str		getRequestHeaders(const string requestStr);
-//string			build_response(Request *request);
+string			build_response(Request &request);
 map_str_str		statusCodes();
 
 #endif

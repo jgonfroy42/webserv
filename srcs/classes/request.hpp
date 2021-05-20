@@ -18,17 +18,17 @@ class Request
 		bool			is_method_valid() const;
 		bool			is_CGI() const;
 		string			get_method() const;
-		map_str_str		*get_headers() const;
+		map_str_str		get_headers() const;
 		string			get_body() const;
-		map_str_str		*get_CGI_env() const;
+		map_str_str		get_CGI_env() const;
 
 		Request &		operator=( Request const & rhs );
 
 	private:
 		string			_method;
-		map_str_str		*_headers;
+		map_str_str		_headers;
 		string			_body;
-		map_str_str		*_CGI_env;
+		map_str_str		_CGI_env;
 	//	sockaddr_in	*_client_addr; //useful pour le REMOTE_ADDR?
 	//	socklen_t	_addr_len; //idem: useful?
 };
