@@ -69,7 +69,6 @@ string get_last_modified(const char *path)
 string build_response(Request &request)
 {
 	string response("HTTP/1.1 ");
-	(void)request;
 	if (request.is_method_valid())
 	{
 		if (request.get_method() == "GET") //|| request.get_method() == "HEAD")
