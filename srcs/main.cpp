@@ -4,11 +4,34 @@
 #include <unistd.h>
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
+#include <fcntl.h>
 #include "./classes/request.hpp"
 
 #define PORT 8080
 #define PENDING_MAX 10
 #define BUFFER_SIZE 3000
+
+int	connectList[PENDING_MAX];
+
+int	setNonBlocking(int fd)
+{
+	int	attributes;
+
+	attributes = fcntl(fd, F_GETFL);
+	if (attributes == -1)
+	{
+		std::cout << "Can't get file attributes" << std::endl;
+		return -1;
+	}
+	attributes = (attributes | O_NONBLOCK);
+	if (fcntl(fd, F_SETFL, attributes))
+	{
+		std::cout << "Can't set file attributes" << std::endl;
+		return -1;
+	}
+	return 0;
+}
 
 int	init_server(sockaddr_in *sock_addr)
 {
@@ -21,11 +44,15 @@ int	init_server(sockaddr_in *sock_addr)
 		return (-1);
 	}
 
-	if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) ==  -1)
+	if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) ==  -1)
 	{
 		std::cerr << "Cannot set options to socket" << std::endl;
 		return (-1);
 	}
+
+	if (setNonBlocking(sock_fd))
+		return -1;
+
 	sock_addr = (sockaddr_in*)calloc(1, sizeof(sockaddr_in)); //attention, a changer par ft_calloc
 	sock_addr->sin_family = AF_INET;
 	sock_addr->sin_addr.s_addr = INADDR_ANY;
@@ -49,7 +76,10 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 	int 		addrlen = sizeof(*sock_addr);
 	std::string	response;
 	char		buffer[BUFFER_SIZE];
+	int			highsock;
 
+	highsock = server_fd;
+	memset((char *) &connectList, 0, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
 		std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;

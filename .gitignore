@@ -1,0 +1,4 @@
+libft/*.o
+libft/libft.a
+objs
+webserv
