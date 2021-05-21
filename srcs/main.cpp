@@ -9,7 +9,7 @@
 #include <string.h>
 #include "./classes/request.hpp"
 
-#define PORT 8080
+#define PORT 9000
 #define PENDING_MAX 10
 #define BUFFER_SIZE 3000
 
@@ -35,10 +35,8 @@ int	setNonBlocking(int fd)
 	return 0;
 }
 
-void	setSelectList(int fd)
+fd_set	setSelectList(int fd, fd_set socks)
 {
-	fd_set	socks;
-
 	FD_ZERO(&socks);
 	FD_SET(fd, &socks);
 
@@ -51,6 +49,7 @@ void	setSelectList(int fd)
 				highsock = connectList[i];
 		}
 	}
+	return socks;
 }
 
 int	init_server(sockaddr_in *sock_addr)
@@ -92,40 +91,55 @@ int	init_server(sockaddr_in *sock_addr)
 
 int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 {
-	int			new_connexion;
-	int 		addrlen = sizeof(*sock_addr);
+//	int			new_connexion;
+//	int 		addrlen = sizeof(*sock_addr);
 	std::string	response;
-	char		buffer[BUFFER_SIZE];
+//	char		buffer[BUFFER_SIZE];
+	fd_set		socks;
+	struct timeval timeout;
+	int	readsocks;
 
+	(void)sock_addr;
 	highsock = server_fd;
 	memset((char *) &connectList, 0, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
-		setSelectList(server_fd);
-		std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
-		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
+		socks = setSelectList(server_fd, socks);
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		if ((readsocks = select(highsock+1, &socks, (fd_set *) 0, (fd_set *) 0, &timeout)) < 0)
 		{
-			std::cerr << "Accept failed" << std::endl;
-			return (-1);
+			std::cout << "Error with select" << std::endl;
+			return -1;
 		}
-
-		//get request
-		recv(new_connexion, &buffer, BUFFER_SIZE, 0);
-		std::cout << buffer << std::endl;
-
-		//parsing request
-		std::string requestStr(buffer);
-		Request request(requestStr, sock_addr);
-		std::cout << request;
-
-/*
-	parsing_request();
-*/
-
-		//send response
-		response = "Server response\n";
-		send(new_connexion, response.c_str(), response.size(), 0);
-		close(new_connexion);
+		if (!readsocks)
+			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
+		else
+			read_socks();
+//		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
+//		{
+//			std::cerr << "Accept failed" << std::endl;
+//			return (-1);
+//		}
+//
+//		//get request
+//		recv(new_connexion, &buffer, BUFFER_SIZE, 0);
+//		std::cout << buffer << std::endl;
+//
+//		//parsing request
+//		std::string requestStr(buffer);
+//		Request request(requestStr, sock_addr);
+//		std::cout << request;
+//
+///*
+//	parsing_request();
+//*/
+//
+//		//send response
+//		response = "Server response\n";
+//		send(new_connexion, response.c_str(), response.size(), 0);
+//		close(new_connexion);
 	}
 	return 0;
 }
@@ -135,6 +149,7 @@ int main(void)
 {
 	int			server_fd;
 	sockaddr_in	*sock_addr = NULL;
+
 	if ((server_fd = init_server(sock_addr)) == -1)
 		return 0;
 	if (start_connexion(server_fd, sock_addr) == -1)
