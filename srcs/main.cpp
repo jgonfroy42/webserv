@@ -6,12 +6,14 @@
 #include <stdlib.h>
 #include <vector>
 #include <fcntl.h>
+#include <string.h>
 #include "./classes/request.hpp"
 
 #define PORT 8080
 #define PENDING_MAX 10
 #define BUFFER_SIZE 3000
 
+int	highsock;
 int	connectList[PENDING_MAX];
 
 int	setNonBlocking(int fd)
@@ -31,6 +33,24 @@ int	setNonBlocking(int fd)
 		return -1;
 	}
 	return 0;
+}
+
+void	setSelectList(int fd)
+{
+	fd_set	socks;
+
+	FD_ZERO(&socks);
+	FD_SET(fd, &socks);
+
+	for (int i = 0; i < PENDING_MAX; ++i)
+	{
+		if (connectList[i] != 0)
+		{
+			FD_SET(connectList[i], &socks);
+			if (connectList[i] > highsock)
+				highsock = connectList[i];
+		}
+	}
 }
 
 int	init_server(sockaddr_in *sock_addr)
@@ -76,12 +96,12 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 	int 		addrlen = sizeof(*sock_addr);
 	std::string	response;
 	char		buffer[BUFFER_SIZE];
-	int			highsock;
 
 	highsock = server_fd;
 	memset((char *) &connectList, 0, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
+		setSelectList(server_fd);
 		std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
 		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
 		{

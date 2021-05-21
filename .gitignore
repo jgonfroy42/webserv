@@ -2,3 +2,4 @@ libft/*.o
 libft/libft.a
 objs
 webserv
+dirty_example
