@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/21 17:05:03 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/24 13:17:56 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ fd_set	setSelectList(int fd, fd_set socks)
 
 	for (int i = 0; i < PENDING_MAX; ++i)
 	{
-		if (connectList[i] != 0)
+		if (connectList[i] != -1)
 		{
 			FD_SET(connectList[i], &socks);
 			if (connectList[i] > highsock)
@@ -100,7 +100,7 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 
 	(void)sock_addr;
 	highsock = server_fd;
-	memset((char *) &connectList, 0, sizeof(connectList)); //changer par ft_memset
+	memset((char *) &connectList, -1, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
 		socks = setSelectList(server_fd, socks);
@@ -112,9 +112,9 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 			std::cout << "Error with select" << std::endl;
 			return -1;
 		}
-		if (!readsocks)
-			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
-		else
+//		if (!readsocks)
+//			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
+//		else
 			read_socks(server_fd, socks);
 //		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
 //		{

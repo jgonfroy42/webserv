@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/21 18:08:46 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/24 13:51:45 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ extern int	connectList[PENDING_MAX];
 
 void	handle_new_connection(int server_fd)
 {
-	int	i;
 	int new_connection;
 
 	if ((new_connection = accept(server_fd, 0, 0) < 0))
@@ -25,9 +24,9 @@ void	handle_new_connection(int server_fd)
 		return ;
 	}
 	setNonBlocking(new_connection);
-	for (i = 0; i < PENDING_MAX; ++i)
+	for (int i = 0; i < PENDING_MAX; ++i)
 	{
-		if (connectList[i] == 0)
+		if (connectList[i] == -1)
 		{
 			connectList[i] = new_connection;
 			return ;
@@ -38,11 +37,28 @@ void	handle_new_connection(int server_fd)
 	close(new_connection);
 }
 
+void	deal_with_data(int id)
+{
+	char buffer[BUFFER_SIZE];
+
+	if (recv(connectList[id], &buffer, BUFFER_SIZE, 0) <= 0)
+	{
+		std::cout << "connection lost" << std::endl;
+		close(connectList[id]);
+		connectList[id] = -1;
+	}
+	else
+	{
+		std::cout << "Received : " << buffer << std::endl;
+	}
+}
+
 void	read_socks(int server_fd, fd_set socks)
 {
-	int	i;
-
 	if (FD_ISSET(server_fd, &socks))
 		handle_new_connection(server_fd);
-	(void)i;
+
+	for (int i = 0; i < PENDING_MAX; ++i)
+		if (connectList[i] != -1 && FD_ISSET(connectList[i], &socks))
+			deal_with_data(i);
 }

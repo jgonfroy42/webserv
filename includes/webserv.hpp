@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/21 16:21:42 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/24 13:10:28 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 #include "./../srcs/classes/request.hpp"
 
 #define PORT 9000
-#define PENDING_MAX 10
+#define PENDING_MAX 3
 #define BUFFER_SIZE 3000
 
 /*set_communication.cpp*/
