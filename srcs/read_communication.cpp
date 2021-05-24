@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 13:51:45 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/24 16:22:06 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,8 @@ void	deal_with_data(int id)
 {
 	char buffer[BUFFER_SIZE];
 
-	if (recv(connectList[id], &buffer, BUFFER_SIZE, 0) <= 0)
+	std::cout << "ready to read" << std::endl;
+	if (recv(connectList[id], &buffer, BUFFER_SIZE, 0) < 0)
 	{
 		std::cout << "connection lost" << std::endl;
 		close(connectList[id]);

@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 13:17:56 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/24 16:26:21 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,9 +112,9 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 			std::cout << "Error with select" << std::endl;
 			return -1;
 		}
-//		if (!readsocks)
-//			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
-//		else
+		if (!readsocks)
+			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
+		else
 			read_socks(server_fd, socks);
 //		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
 //		{
