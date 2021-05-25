@@ -61,11 +61,15 @@ int start_connexion(int server_fd, sockaddr_in *sock_addr)
 		//parsing du fichier de config ? ou plutot fichier de config est un arg de build_response ci-apres ? A priori ce serait + logique
 
 		//building response
-		std::string	response = build_response(request);
+		char	*response;
+		int		response_size;
+		response = NULL;
+		response_size = build_response(request, &response);
 		std::cout << std::endl << "---RESPONSE SENT TO CLIENT:\n" << response << std::endl;
 
 		//send response	
-		send(new_connexion, response.c_str(), response.size(), 0);
+		send(new_connexion, response, response_size, 0);
+		delete response;
 		close(new_connexion);
 	}
 	return 0;

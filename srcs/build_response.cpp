@@ -14,7 +14,7 @@ void add_status_line(string &response, string code)
 	response += "\n";
 }
 
-void add_response_header(string &response, string header, string value)
+void add_header(string &response, string header, string value)
 {
 	response += header;
 	response += value;
@@ -40,13 +40,15 @@ string get_current_date()
 
 string get_last_modified(const char *path)
 {
-	struct stat buf;
+	struct stat stat_struct;
 	time_t last_modification;
 	struct tm *mtime;
 	char tmbuf[64];
 
-	stat(path, &buf); //gerer les cas d'erreur ?
-	last_modification = buf.st_mtime;
+	if (stat(path, &stat_struct) != 0)
+		std::cout << strerror(errno) << " for path " << path << std::endl;
+	; //gerer les cas d'erreur ?
+	last_modification = stat_struct.st_mtime;
 	mtime = localtime(&last_modification);
 	strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", mtime);
 
@@ -66,52 +68,87 @@ string get_last_modified(const char *path)
 	return string(tmbuf);
 }
 
-string build_response(Request &request)
+off_t get_file_size(const char *path)
 {
-	string response("HTTP/1.1 ");
+	struct stat stat_struct;
+
+	if (stat(path, &stat_struct) != 0)
+	{
+		std::cerr << strerror(errno) << " for path " << path << std::endl; //pertinence ?
+		return -1;
+	}
+	else
+		return stat_struct.st_size;
+}
+
+int	build_response(Request &request, char **response)
+{
+	string headers("HTTP/1.1 ");
+	size_t response_size = 0;
 	if (request.is_method_valid())
 	{
 		if (request.get_method() == "GET") //|| request.get_method() == "HEAD")
 		{
-			if (request.is_CGI())
+			if (request.is_CGI())//En attente nouveau sujet ?
 			{
-				return "cgi_request\n"; //En attente nouveau sujet ?
+				std::cerr << "cgi_request\n"; 
+				return -1;
 			}
 			else
 			{
-				const char *file_path = request.get_CGI_env()["REQUEST_URI"].c_str();
-				int ret = open(file_path + 1, O_RDONLY); //+1 pour enlever le '/'
-				if (ret != -1)
+				string file_path = string(request.get_CGI_env()["REQUEST_URI"], 1); //+1 pour enlever le '/'
+				//getting size and getting availability of file
+				off_t file_size;
+				if ((file_size = get_file_size(file_path.c_str())) < 0) //file not found + voir si trop gros ?
 				{
-					//lecture du fichier
-					char read_buff[65636]; //remplacer par un gnl ?
-					ssize_t body_size = read(ret, read_buff, INT_MAX);
-					if (body_size == -1)
-						return "could not read requested file\n"; //a traiter differement, voir les differents cas d'erreur avec errno ? puis set le status code en fonction ?
-					if (body_size == INT_MAX)
-						return "requested file body is too long\n"; //idem ou faire un gnl ?
+					std::cerr<< "file not found"<<std::endl;
+					return -1;
+				}
+				//voir code erreur + voir eventuellement avec errno si plusieurs type d'erreurs et donc de codes erreurs
 
+				//opening file
+				std::ifstream stream;
+				stream.open(file_path.c_str(), std::ifstream::binary);
+				if (stream.is_open())
+				{
+					char *buffer = new char[file_size];
+					stream.read(buffer, sizeof(char) * file_size);
 					//status line
-					add_status_line(response, OK); //200
+					add_status_line(headers, OK); //200
 
 					//headers
 					if (request.get_headers()["Transfer-Encoding"] != string())
-						add_response_header(response, "Content-Length: ", string(ft_itoa(body_size)));
-					add_response_header(response, "Date: ", get_current_date());
-					add_response_header(response, "Last-Modified: ", get_last_modified(file_path));
-					add_response_header(response, "Server: ", "Our webserv"); //choix statique a confirmer
+						add_header(headers, "Content-Length: ", string(ft_itoa(file_size)));
+					add_header(headers, "Date: ", get_current_date());
+					add_header(headers, "Last-Modified: ", get_last_modified(file_path.c_str()));
+					add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
+					headers += "\n\n";
+
+					response_size = file_size + headers.size();
+					char *to_send = new char[response_size];
+				//	to_send[response_size] = 0;
 
 					//body
-					std::string body(read_buff);
-					if (body.size() > 0) //useful ?
+					for(size_t i = 0; i < headers.size();++i)
 					{
-						response += "\n\n";
-						response += body;
+						to_send[i] = headers.c_str()[i];
+						std::cout<< to_send[i];
 					}
-					close(ret);
+
+						std::cout<< "revoila la sousprefete";
+					for(size_t i = headers.size(); i < response_size -1; ++i)
+					{
+						to_send[i] = buffer[i - headers.size()];
+						std::cout<< to_send[i];
+					}
+					*response = to_send;
+
+					delete [] buffer;
+
+					stream.close();
 				}
 				else
-					add_status_line(response, NOT_FOUND); //404*/
+					add_status_line(headers, NOT_FOUND); //404*/
 			}
 		}
 		else if (request.get_method() == "HEAD")
@@ -137,8 +174,8 @@ string build_response(Request &request)
 		}
 	}
 	else
-		add_status_line(response, BAD_REQUEST); //=400 //ou 405 method not allowed?
-	return response;
+		add_status_line(headers, BAD_REQUEST); //=400 //ou 405 method not allowed?
+	return response_size;
 }
 
 /* response headers:

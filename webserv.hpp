@@ -8,6 +8,7 @@
 # include <netinet/in.h>
 # include <unistd.h>
 # include <stdlib.h>
+# include <stdio.h>
 # include <map>
 # include <sys/socket.h>
 # include <netinet/in.h>
@@ -19,6 +20,8 @@
 # include <time.h>
 # include <fcntl.h>
 # include <sys/stat.h>
+# include <errno.h>
+#include <fstream>
 
 # define PORT 8080
 # define PENDING_MAX 10
@@ -36,7 +39,7 @@ void			displayMap(map_str_str toDisplay);
 map_str_str		getCGIEnv(const string request, const sockaddr_in *client_addr);
 string			getBody(string request);
 map_str_str		getRequestHeaders(const string requestStr);
-string			build_response(Request &request);
+int				build_response(Request &request, char **response);
 map_str_str		statusCodes();
 
 #endif
