@@ -54,8 +54,7 @@ int start_connexion(int server_fd, sockaddr_in *sock_addr)
 		std::cout << buffer << std::endl;
 
 		//parsing request
-		std::string requestStr(buffer);
-		Request request(requestStr, sock_addr);
+		Request request(string(buffer), sock_addr);
 		std::cout << request;
 
 		//parsing du fichier de config ? ou plutot fichier de config est un arg de build_response ci-apres ? A priori ce serait + logique
@@ -65,6 +64,7 @@ int start_connexion(int server_fd, sockaddr_in *sock_addr)
 		int		response_size;
 		response = NULL;
 		response_size = build_response(request, &response);
+		std::cout << "response_size = " << response_size;
 		std::cout << std::endl << "---RESPONSE SENT TO CLIENT:\n" << response << std::endl;
 
 		//send response	

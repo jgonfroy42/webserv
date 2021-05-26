@@ -81,26 +81,22 @@ off_t get_file_size(const char *path)
 		return stat_struct.st_size;
 }
 
-int response_to_HEAD(Request &request, char **response, size_t &response_size)
+int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_size)
 {
 	string headers("HTTP/1.1 ");
-	size_t response_size = 0;
-
-	string file_path = string(request.get_CGI_env()["REQUEST_URI"], 1); //+1 pour enlever le '/'
-	//getting size and getting availability of file
+	char *to_send;
 	off_t file_size;
-	if ((file_size = get_file_size(file_path.c_str())) < 0) //file not found + voir si trop gros ?
+	if (request.is_CGI()) //En attente nouveau sujet ?
 	{
-		std::cerr << "file not found" << std::endl;
+		std::cerr << "cgi_request\n";
 		return -1;
 	}
-	//voir code erreur + voir eventuellement avec errno si plusieurs type d'erreurs et donc de codes erreurs
-
-	//opening file
-	std::ifstream stream;
-	stream.open(file_path.c_str(), std::ifstream::binary);
-	if (stream.is_open())
+	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
 	{
+		//opening file
+		std::ifstream stream;
+		stream.open(request.get_path().c_str(), std::ifstream::binary);
+
 		//status line
 		add_status_line(headers, OK); //200
 
@@ -108,67 +104,43 @@ int response_to_HEAD(Request &request, char **response, size_t &response_size)
 		if (request.get_headers()["Transfer-Encoding"] != string())
 			add_header(headers, "Content-Length: ", string(ft_itoa(file_size)));
 		add_header(headers, "Date: ", get_current_date());
-		add_header(headers, "Last-Modified: ", get_last_modified(file_path.c_str()));
+		add_header(headers, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
 		add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
-		headers += "\n";
-	}
-	else
-		add_status_line(headers, NOT_FOUND); //404*/
-	*response = (char *)headers.c_str();
-	stream.close();
-	return headers.size();
-}
-
-int response_to_GET(Request &request, char **response, size_t &response_size)
-{
-	if (request.is_CGI()) //En attente nouveau sujet ?
-	{
-		std::cerr << "cgi_request\n";
-		return -1;
-	}
-	else
-	{
-		char *headers;
-		response_to_HEAD(request, &headers, response_size; stream);
-		string headers_str(headers);
-
-		string file_path = string(request.get_CGI_env()["REQUEST_URI"], 1); //+1 pour enlever le '/'
-		//getting size and getting availability of file
-		off_t file_size;
-		if ((file_size = get_file_size(file_path.c_str())) < 0) //file not found + voir si trop gros ?
+		if (request.get_method() == "GET") // Ajout du body
 		{
-			std::cerr << "file not found" << std::endl;
-			return -1;
-		}
-		//voir code erreur + voir eventuellement avec errno si plusieurs type d'erreurs et donc de codes erreurs
+			headers += "\n";
+			char *buffer = new char[file_size];
+			std::ifstream stream;
+			stream.open(request.get_path().c_str(), std::ifstream::binary);
+			stream.read(buffer, sizeof(char) * file_size);
+			response_size = file_size + headers.size();
+			to_send = new char[response_size];
 
-		//opening file
-		std::ifstream stream;
-		stream.open(file_path.c_str(), std::ifstream::binary);
-		if (stream.is_open())
+			//body
+			for (size_t i = 0; i < headers.size(); ++i)
+				to_send[i] = headers.c_str()[i];
+			for (size_t i = headers.size(); i < response_size; ++i)
+				to_send[i] = buffer[i - headers.size()];
+			delete[] buffer;
+		}
+		else //Method == HEAD
 		{
-			if (headers_str.find("200 OK") != string::npos)
-			{
-				char *buffer = new char[file_size];
-				std::ifstream stream;
-				stream.open(file_path.c_str(), std::ifstream::binary);
-				stream.read(buffer, sizeof(char) * file_size);
-				response_size = file_size + headers_str.size();
-				char *to_send = new char[response_size];
-
-				//body
-				for (size_t i = 0; i < headers_str.size(); ++i)
-					to_send[i] = headers_str.c_str()[i];
-				for (size_t i = headers_str.size(); i < response_size; ++i)
-					to_send[i] = buffer[i - headers_str.size()];
-				*response = to_send;
-				delete[] buffer;
-				stream.close();
-			}
-			else
-				*response = headers;
+			to_send = new char[headers.size()];
+			for (size_t i = 0; i < headers.size(); ++i)
+				to_send[i] = headers.c_str()[i];
+			response_size = headers.size();
 		}
+		stream.close();
 	}
+	else //404 Not Found
+	{
+		add_status_line(headers, NOT_FOUND);
+		to_send = new char[headers.size()];
+		for (size_t i = 0; i < headers.size(); ++i)
+			to_send[i] = headers.c_str()[i];
+		response_size = headers.size();
+	}
+	*response = to_send;
 	return 0;
 }
 
@@ -177,13 +149,9 @@ int build_response(Request &request, char **response)
 	size_t response_size = 0;
 	if (request.is_method_valid())
 	{
-		if (request.get_method() == "GET")
+		if (request.get_method() == "GET" || request.get_method() == "HEAD")
 		{
-			response_to_GET(request, response, response_size);
-		}
-		else if (request.get_method() == "HEAD")
-		{
-			response_to_HEAD(request, response, response_size);
+			response_to_GET_or_HEAD(request, response, response_size);
 		}
 		else if (request.get_method() == "POST")
 		{
@@ -208,7 +176,6 @@ int build_response(Request &request, char **response)
 	{
 		string headers("HTTP/1.1 ");
 		add_status_line(headers, BAD_REQUEST); //=400 //ou 405 method not allowed?
-											   //*response = new char *(headers.c_str());
 	}
 	return response_size;
 }
