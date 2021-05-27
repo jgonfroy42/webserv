@@ -64,12 +64,11 @@ int start_connexion(int server_fd, sockaddr_in *sock_addr)
 		int		response_size;
 		response = NULL;
 		response_size = build_response(request, &response);
-		std::cout << "response_size = " << response_size;
 		std::cout << std::endl << "---RESPONSE SENT TO CLIENT:\n" << response << std::endl;
 
 		//send response	
 		send(new_connexion, response, response_size, 0);
-		delete response;
+		delete response;//new dans build_response
 		close(new_connexion);
 	}
 	return 0;

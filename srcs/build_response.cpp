@@ -2,6 +2,10 @@
 #include "../libft/ft_bzero.c"	//SALE
 #include "../libft/ft_calloc.c" //SALE
 #include "../libft/ft_itoa.c"	//SALE
+#include "../libft/ft_strjoin.c"//SALE
+#include "../libft/ft_strlcpy.c"//SALE
+#include "../libft/ft_strlcat.c"//SALE
+#include "../libft/ft_strlen.c"//SALE
 
 // source : https://www.tutorialspoint.com/http/http_responses.htm
 
@@ -81,10 +85,21 @@ off_t get_file_size(const char *path)
 		return stat_struct.st_size;
 }
 
+char *headers_body_join(string headers, char *body, size_t size)
+{
+	char *dst;
+
+	dst = new char[size];
+	for (size_t i = 0; i < headers.size(); ++i)
+		dst[i] = headers.c_str()[i];
+	for (size_t i = headers.size(); i < size; ++i)
+		dst[i] = body[i - headers.size()];  
+	return dst;
+}
+
 int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_size)
 {
 	string headers("HTTP/1.1 ");
-	char *to_send;
 	off_t file_size;
 	if (request.is_CGI()) //En attente nouveau sujet ?
 	{
@@ -101,8 +116,9 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 		add_status_line(headers, OK); //200
 
 		//headers
+		char *size_itoa = ft_itoa(file_size);//malloc --'
 		if (request.get_headers()["Transfer-Encoding"] != string())
-			add_header(headers, "Content-Length: ", string(ft_itoa(file_size)));
+			add_header(headers, "Content-Length: ", string(size_itoa));
 		add_header(headers, "Date: ", get_current_date());
 		add_header(headers, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
 		add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
@@ -114,33 +130,23 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 			stream.open(request.get_path().c_str(), std::ifstream::binary);
 			stream.read(buffer, sizeof(char) * file_size);
 			response_size = file_size + headers.size();
-			to_send = new char[response_size];
-
-			//body
-			for (size_t i = 0; i < headers.size(); ++i)
-				to_send[i] = headers.c_str()[i];
-			for (size_t i = headers.size(); i < response_size; ++i)
-				to_send[i] = buffer[i - headers.size()];
+			*response = headers_body_join(headers, buffer, response_size);
 			delete[] buffer;
 		}
 		else //Method == HEAD
 		{
-			to_send = new char[headers.size()];
-			for (size_t i = 0; i < headers.size(); ++i)
-				to_send[i] = headers.c_str()[i];
 			response_size = headers.size();
+			*response = headers_body_join(headers, NULL, response_size);
 		}
 		stream.close();
+		free(size_itoa);
 	}
-	else //404 Not Found
+	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
 	{
 		add_status_line(headers, NOT_FOUND);
-		to_send = new char[headers.size()];
-		for (size_t i = 0; i < headers.size(); ++i)
-			to_send[i] = headers.c_str()[i];
 		response_size = headers.size();
+		*response = headers_body_join(headers, NULL, response_size);
 	}
-	*response = to_send;
 	return 0;
 }
 
@@ -149,6 +155,7 @@ int build_response(Request &request, char **response)
 	size_t response_size = 0;
 	if (request.is_method_valid())
 	{
+		//405 if method know but not allowed for the target
 		if (request.get_method() == "GET" || request.get_method() == "HEAD")
 		{
 			response_to_GET_or_HEAD(request, response, response_size);
@@ -175,7 +182,8 @@ int build_response(Request &request, char **response)
 	else
 	{
 		string headers("HTTP/1.1 ");
-		add_status_line(headers, BAD_REQUEST); //=400 //ou 405 method not allowed?
+		add_status_line(headers, NOT_IMPLEMENTED); //=501 //cf 4.1 
+
 	}
 	return response_size;
 }

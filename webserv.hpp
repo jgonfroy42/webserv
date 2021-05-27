@@ -28,9 +28,10 @@
 # define BUFFER_SIZE 3000
 
 // STATUS CODES
-# define OK				"200"
-# define BAD_REQUEST	"400"
-# define NOT_FOUND		"404"
+# define OK					"200"
+# define BAD_REQUEST		"400"
+# define NOT_FOUND			"404"
+# define NOT_IMPLEMENTED	"501"
 
 typedef std::string string;
 typedef std::map<std::string, std::string> map_str_str;
