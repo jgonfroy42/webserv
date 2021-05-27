@@ -17,9 +17,9 @@ int		Server::get_port() const
 	return (_port);
 }
 
-string	Server::get_server_name() const
+string	Server::get_server_names() const
 {
-	return (_server_name);
+	return (_server_names);
 }
 
 string	Server::get_root() const

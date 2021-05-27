@@ -15,7 +15,7 @@ class Server
 		~Server();
 
 		int		get_port() const;
-		string	get_server_name() const;
+		string	get_server_names() const;
 		string	get_root() const;
 		int		get_client_max_body_size() const;
 		string	get_index() const;
@@ -34,27 +34,19 @@ class Server
 				string	_root;
 				string	_index; // vector ??
 				std::map<std::string, bool> _allowed_methods;
-				// bool	_allow_get;
-				// bool	_allow_head;
-				// bool	_allow_post;
-				// bool	_allow_put;
-				// bool	_allow_delete;
-				// bool	_allow_connect;
-				// bool	_allow_options;
-				// bool	_allow_trace;
-				// bool	_allow_patch;
 				bool	_auto_index;
 				string	_default_answer; // ??
 		};
 
 		int			_port; // pas int ???
 		string		_host;
-		string		_server_name; // vector ??
+		string		_server_names; // vector ??
 		int			_client_max_body_size;
 		string		_root;
 		string		_index;  // vector ??
 		map_str_str	_error_pages;
 		std::vector<Location> _locations; // ??
+
 
 };
 
