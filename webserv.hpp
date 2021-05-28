@@ -40,4 +40,6 @@ void			displayMap(map_str_str toDisplay);
 int				build_response(Request &request, char **response);
 map_str_str		statusCodes();
 
+void	parsing_config(char *config_file);
+
 #endif

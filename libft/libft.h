@@ -3,19 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: celeloup <celeloup@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/11/08 14:27:01 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/01/21 16:19:15 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/28 12:30:54 by celeloup         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LIBFT_H
 # define LIBFT_H
 
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 3000
+# endif
+
 # include <string.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include <limits.h>
 
 typedef struct	s_list
 {
@@ -70,5 +75,8 @@ t_list			*ft_lstmap(t_list *lst, void *(*f)(void *), \
 				void (*del) (void *));
 int				ft_charset(char c, char *charset);
 long long int	ft_atoi_llong(const char *str);
+char            *ft_strncpy(char *dest, const char *src, size_t n);
+char            *ft_strcpy(char *dest, const char *src);
+int				get_next_line(int fd, char **line);
 
 #endif

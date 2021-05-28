@@ -4,11 +4,11 @@
 #include <unistd.h>
 #include <iostream>
 #include <stdlib.h>
-#include "./classes/request.hpp"
+#include "../webserv.hpp"
 
 #define PORT 8080
 #define PENDING_MAX 10
-#define BUFFER_SIZE 3000
+// #define BUFFER_SIZE 3000
 
 int	init_server(sockaddr_in *sock_addr)
 {
@@ -81,15 +81,19 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
-	int			server_fd;
-	sockaddr_in	*sock_addr = NULL;
-	if ((server_fd = init_server(sock_addr)) == -1)
-		return 0;
-	if (start_connexion(server_fd, sock_addr) == -1)
-		return 0;
-	free(sock_addr);
-  	close(server_fd);
+	if (argc == 2)
+		parsing_config(argv[1]);
+	// else
+	// 	parsing_config("../config/default.conf");
+	// int			server_fd;
+	// sockaddr_in	*sock_addr = NULL;
+	// if ((server_fd = init_server(sock_addr)) == -1)
+	// 	return 0;
+	// if (start_connexion(server_fd, sock_addr) == -1)
+	// 	return 0;
+	// free(sock_addr);
+  	// close(server_fd);
 	return (0);
 }
