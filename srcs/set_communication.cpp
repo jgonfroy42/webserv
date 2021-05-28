@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 16:26:21 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/28 11:50:07 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,23 +94,32 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 //	int 		addrlen = sizeof(*sock_addr);
 	std::string	response;
 //	char		buffer[BUFFER_SIZE];
-	fd_set		socks;
+	fd_set		current_socks, socks;
 	struct timeval timeout;
 	int	readsocks;
 
 	(void)sock_addr;
+	FD_ZERO(&socks);
 	highsock = server_fd;
-	memset((char *) &connectList, -1, sizeof(connectList)); //changer par ft_memset
+	FD_SET(server_fd, &socks);
+	timeout.tv_sec = 3 * 60;
+	timeout.tv_usec = 0;
+
+	memcpy(&current_socks, &socks, sizeof(socks));
+//	memset((char *) &connectList, -1, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
-		socks = setSelectList(server_fd, socks);
-		timeout.tv_sec = 1;
-		timeout.tv_usec = 0;
-
-		if ((readsocks = select(highsock+1, &socks, (fd_set *) 0, (fd_set *) 0, &timeout)) < 0)
+		std::cout << "Select" << std::endl;
+//		socks = setSelectList(server_fd, socks);
+		if ((readsocks = select(highsock+1, &current_socks, NULL, NULL, &timeout)) < 0)
 		{
 			std::cout << "Error with select" << std::endl;
 			return -1;
+		}
+		if (readsocks == 0)
+		{
+			std::cout << "Time out" << std::endl;
+			return 0;
 		}
 		if (!readsocks)
 			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;

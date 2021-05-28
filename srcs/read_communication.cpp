@@ -6,12 +6,13 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 16:22:06 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/28 10:57:59 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
 
+extern int	highsock;
 extern int	connectList[PENDING_MAX];
 
 void	handle_new_connection(int server_fd)
@@ -41,7 +42,6 @@ void	deal_with_data(int id)
 {
 	char buffer[BUFFER_SIZE];
 
-	std::cout << "ready to read" << std::endl;
 	if (recv(connectList[id], &buffer, BUFFER_SIZE, 0) < 0)
 	{
 		std::cout << "connection lost" << std::endl;
@@ -59,7 +59,12 @@ void	read_socks(int server_fd, fd_set socks)
 	if (FD_ISSET(server_fd, &socks))
 		handle_new_connection(server_fd);
 
+	select(highsock + 1, &socks, (fd_set *) connectList, (fd_set *) connectList, NULL);
 	for (int i = 0; i < PENDING_MAX; ++i)
-		if (connectList[i] != -1 && FD_ISSET(connectList[i], &socks))
-			deal_with_data(i);
+		if (connectList[i] != -1)
+		{
+			FD_SET(connectList[i], &socks);
+			if (FD_ISSET(connectList[i], &socks))
+				deal_with_data(i);
+		}
 }
