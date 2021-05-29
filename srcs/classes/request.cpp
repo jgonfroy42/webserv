@@ -8,12 +8,13 @@ Request::Request()
 {
 }
 
-Request::Request(const string request_str, const sockaddr_in *client_addr)
+Request::Request(const char *request_array, const sockaddr_in *client_addr)
 {
-	string start_line = string(request_str, 0, request_str.find('\n'));
-	parse_start_line(request_str);
-	_headers = parse_headers(request_str);
-	_body = parse_body(request_str);
+	_body = parse_body(request_array);
+	string request_string = string(request_array);
+	string start_line = string(request_string, 0, request_string.find('\n'));
+	parse_start_line(request_string);
+	_headers = parse_headers(request_string);
 	(void) client_addr;
 	//	_client_addr = client_addr; //useful pour le REMOTE_ADDR pas sous forme de str car fonction pour l'avoir sous forme de str pas autorisee?
 	//_addr_len; //idem: useful?
@@ -35,6 +36,7 @@ Request::Request(const Request &src)
 
 Request::~Request()
 {
+	delete _body;
 }
 
 /*
@@ -122,15 +124,23 @@ map_str_str		Request::parse_headers(const string request_str)
 	return headers;
 }
 
-string	Request::parse_body(string request)
+char	*Request::parse_body(const char *request)
 {
-	size_t pos;
-	if ((pos = request.find("\n\n")) != string::npos)
+	char *tmp;
+	char *body;
+	size_t size;
+	if ((tmp = strstr(request, "\n\n")) == NULL)
+		body = new char[0];
+	else
 	{
-		return string(request, pos + 2, string::npos);//substring de request apres \n\n
+		tmp++;
+		tmp++;
+		size = sizeof(tmp);
+		body = new char[size];
+		memcpy(body, tmp, size);//memcp =leaks?
+		std::cout << "body is:\n" << body << std::endl;
 	}
-	else	
-		return string();
+	return body;
 }
 
 int Request::parse_start_line(string start_line)
@@ -218,7 +228,7 @@ map_str_str Request::get_headers() const
 	return (_headers);
 }
 
-string Request::get_body() const
+char *Request::get_body() const
 {
 	return (_body);
 }

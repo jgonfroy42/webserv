@@ -32,6 +32,8 @@
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
 # define NOT_IMPLEMENTED	"501"
+# define NO_CONTENT			"204"
+# define CREATED			"200"
 
 typedef std::string string;
 typedef std::map<std::string, std::string> map_str_str;
