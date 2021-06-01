@@ -6,13 +6,14 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 13:57:36 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 13:34:17 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/31 14:35:32 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
 
 int	highsock;
+int	readable;
 int	connectList[PENDING_MAX];
 
 int main(void)

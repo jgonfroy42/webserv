@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/24 13:10:28 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/31 15:10:19 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 #include <vector>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 #include "./../srcs/classes/request.hpp"
 
@@ -37,6 +38,6 @@ int		init_server(sockaddr_in *sock_addr);
 int		start_connexion(int server_fd, sockaddr_in *sock_addr);
 
 /*set_communication.cpp*/
-void	read_socks(int server_fd, fd_set socks);
+void	read_socks(int server_fd, fd_set socks, fd_set server_sock);
 
 #endif

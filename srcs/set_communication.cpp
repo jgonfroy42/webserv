@@ -6,13 +6,14 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/28 11:50:07 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/31 15:09:15 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
 
 extern int highsock;
+extern int readable;
 extern int connectList[PENDING_MAX];
 
 int	setNonBlocking(int fd)
@@ -96,7 +97,6 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 //	char		buffer[BUFFER_SIZE];
 	fd_set		current_socks, socks;
 	struct timeval timeout;
-	int	readsocks;
 
 	(void)sock_addr;
 	FD_ZERO(&socks);
@@ -109,22 +109,19 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 //	memset((char *) &connectList, -1, sizeof(connectList)); //changer par ft_memset
 	while (1)
 	{
-		std::cout << "Select" << std::endl;
+		std::cout << "Waiting select..." << std::endl;
 //		socks = setSelectList(server_fd, socks);
-		if ((readsocks = select(highsock+1, &current_socks, NULL, NULL, &timeout)) < 0)
+		if ((readable = select(highsock+1, &current_socks, NULL, NULL, &timeout)) < 0)
 		{
 			std::cout << "Error with select" << std::endl;
 			return -1;
 		}
-		if (readsocks == 0)
+		if (readable == 0)
 		{
 			std::cout << "Time out" << std::endl;
 			return 0;
 		}
-		if (!readsocks)
-			std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
-		else
-			read_socks(server_fd, socks);
+		read_socks(server_fd, current_socks, socks);
 //		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
 //		{
 //			std::cerr << "Accept failed" << std::endl;

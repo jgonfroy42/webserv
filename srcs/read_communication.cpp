@@ -6,13 +6,14 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/28 10:57:59 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/05/31 16:35:14 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
 
 extern int	highsock;
+extern int	readable;
 extern int	connectList[PENDING_MAX];
 
 void	handle_new_connection(int server_fd)
@@ -54,17 +55,69 @@ void	deal_with_data(int id)
 	}
 }
 
-void	read_socks(int server_fd, fd_set socks)
+void	read_socks(int server_fd, fd_set current_socks, fd_set server_sock)
 {
-	if (FD_ISSET(server_fd, &socks))
-		handle_new_connection(server_fd);
+	int	ret;
+	int new_co = 0;
+	bool close_co;
+	char *buffer[BUFFER_SIZE];
 
-	select(highsock + 1, &socks, (fd_set *) connectList, (fd_set *) connectList, NULL);
-	for (int i = 0; i < PENDING_MAX; ++i)
-		if (connectList[i] != -1)
+	for (int i = 0; i <= highsock && readable; ++i)
+	{
+		if (FD_ISSET(i, &current_socks))
 		{
-			FD_SET(connectList[i], &socks);
-			if (FD_ISSET(connectList[i], &socks))
-				deal_with_data(i);
+			readable--;
+			if (i == server_fd)
+			{
+				std::cout << "Server readable" << std::endl;
+				while (new_co != -1)
+				{
+					new_co = accept(server_fd, NULL, NULL);
+					if (new_co < 0)
+					{
+						if (errno != EAGAIN)
+							std::cerr << "Error when accept conection" << std::endl;
+						return;
+					}
+					std::cout << "new connection to server" << std::endl;
+					FD_SET(new_co, &server_sock);
+					if(new_co > highsock)
+						highsock = new_co;
+				}
+			}
+			else
+			{
+				std::cout << "connection readable" << std::endl;
+				close_co = false;
+				while (1)
+				{
+					if ((ret = recv(i, buffer, sizeof(BUFFER_SIZE), 0)) < 0)
+					{
+						if (errno != EWOULDBLOCK)
+						{
+							std::cerr << "failure while reading" << std::endl;
+							close_co = true;
+						}
+						return ;
+					}
+					if (ret == 0)
+					{
+						std::cout << "connection closed" << std::endl;
+						close_co = true;
+						return;
+					}
+					std::cout << "message receive : " << buffer << std::endl;
+				}
+				if (close_co)
+				{
+					close(i);
+					FD_CLR(i, &server_sock);
+					if (i == highsock)
+						while (FD_ISSET(highsock, &current_socks) == false)
+							highsock--;
+
+				}
+			}
 		}
+	}
 }
