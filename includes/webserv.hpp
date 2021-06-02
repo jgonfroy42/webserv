@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/31 15:10:19 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/02 11:25:37 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,9 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
+#include <sys/ioctl.h>
 #include <iostream>
-#include <stdlib.h>
-#include <vector>
-#include <fcntl.h>
-#include <string.h>
+#include <cstring>
 #include <errno.h>
 
 #include "./../srcs/classes/request.hpp"

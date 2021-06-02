@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/05/31 15:09:15 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/01 11:40:29 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,9 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 			return 0;
 		}
 		read_socks(server_fd, current_socks, socks);
+
+
+
 //		if ((new_connexion = accept(server_fd, (struct sockaddr *)sock_addr, (socklen_t*)&addrlen)) < 0)
 //		{
 //			std::cerr << "Accept failed" << std::endl;
