@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/02 11:25:37 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/02 16:33:15 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <fcntl.h>
 #include <iostream>
 #include <cstring>
 #include <errno.h>
@@ -35,5 +36,6 @@ int		start_connexion(int server_fd, sockaddr_in *sock_addr);
 
 /*set_communication.cpp*/
 void	read_socks(int server_fd, fd_set socks, fd_set server_sock);
+int		get_data(int i, fd_set server);
 
 #endif

@@ -6,13 +6,13 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 13:57:36 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/02 12:14:23 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/02 17:44:45 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
 
-int	highsock;
+int	max_sd;
 int	readable;
 int	connectList[PENDING_MAX];
 
@@ -29,17 +29,18 @@ int	connectList[PENDING_MAX];
 //  	close(server_fd);
 //	return (0);
 //}
-//
+
 int	main(void)
 {
-	int server_sd, max_sd;
+	int server_sd;
 	int	on = 1;
 	int	new_co = 0;
 	fd_set	server, entries;
-	sockaddr_in	sock_addr = NULL;
-	bool	close_co;
+//	sockaddr_in	*sock_addr = NULL;
+	timeval	timeout;
+	struct sockaddr_in6 addr;
 
-	if ((server_sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((server_sd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
 	{
 		std::cerr << "Error : can't create socket" << std::endl;
 		return -1;
@@ -50,24 +51,29 @@ int	main(void)
 		return -1;
 	}
 	//ioctl is forbidden : need do test with fcntl
-	if (ioctl(server_sd, FIONBIO, (char *)&on) < 0)
-	{
-		std::cerr << "Error : can't set non blocking" << std::endl;
-		return -1;
-	}
-
+//	if (ioctl(server_sd, FIONBIO, (char *)&on) < 0)
+//	{
+//		std::cerr << "Error : can't set non blocking" << std::endl;
+//		return -1;
+//	}
+	fcntl(server_sd, F_SETFL, O_NONBLOCK);
 	//est-ce que c'est la ligne qui pose pb ?
-	memset(&sock_addr, 0, sizeof(sock_addr));
-	sock_addr->sin_family = AF_INET;
-	sock_addr->sin_addr.s_addr = INADDR_ANY;
-	sock_addr->sin_port = htons(PORT);
+   memset(&addr, 0, sizeof(addr));
+   addr.sin6_family      = AF_INET6;
+   memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
+   addr.sin6_port        = htons(PORT);
 
-	if (bind(server_sd, (struct sockaddr *)sock_addr, sizeof(*sock_addr)) < 0)
+    int  rc = bind(server_sd,
+             (struct sockaddr *)&addr, sizeof(addr));
+   if (rc < 0)
 	{
 		std::cerr << "Cannot bind socket" << std::endl;
 		close(server_sd);
 		return (-1);
 	}
+
+   listen(server_sd, 32);
+
 	FD_ZERO(&server);
 	max_sd = server_sd;
 	FD_SET(server_sd, &server);
@@ -96,7 +102,7 @@ int	main(void)
 				if (i == server_sd)
 				{
 					std::cout << "Server readable" << std::endl;
-					while (new_co =! -1)
+					while (new_co != -1)
 					{
 						new_co = accept(server_sd, NULL, NULL);
 						if (new_co < 0)
@@ -112,13 +118,7 @@ int	main(void)
 					}
 				}
 				else
-				{
-					std::cout << "Connection readable" << std::endl;
-					close_co = false;
-					while (1)
-					{
-					}
-				}
+					get_data(i, server);
 			}
 		}
 	}

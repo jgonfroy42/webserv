@@ -9,8 +9,7 @@ DIR_OBJS	= objs/
 DIR_INC		= ./includes/
 DIR_LIB		= ./libft/
 
-F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp set_communication.cpp \
-			  read_communication.cpp
+F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp read_communication.cpp \
 
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 

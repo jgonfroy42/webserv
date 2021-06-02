@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:10:20 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/01 11:40:29 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/02 16:10:44 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,20 +18,21 @@ extern int connectList[PENDING_MAX];
 
 int	setNonBlocking(int fd)
 {
-	int	attributes;
-
-	attributes = fcntl(fd, F_GETFL);
-	if (attributes == -1)
-	{
-		std::cout << "Can't get file attributes" << std::endl;
-		return -1;
-	}
-	attributes = (attributes | O_NONBLOCK);
-	if (fcntl(fd, F_SETFL, attributes))
-	{
-		std::cout << "Can't set file attributes" << std::endl;
-		return -1;
-	}
+//	int	attributes;
+//
+//	attributes = fcntl(fd, F_GETFL);
+//	if (attributes == -1)
+//	{
+//		std::cout << "Can't get file attributes" << std::endl;
+//		return -1;
+//	}
+//	attributes = (attributes | O_NONBLOCK);
+//	if (fcntl(fd, F_SETFL, attributes))
+//	{
+//		std::cout << "Can't set file attributes" << std::endl;
+//		return -1;
+//	}
+	(void)fd;
 	return 0;
 }
 
@@ -81,7 +82,7 @@ int	init_server(sockaddr_in *sock_addr)
 		std::cerr << "Cannot bind socket" << std::endl;
 		return (-1);
 	}
-	if (listen(sock_fd, PENDING_MAX) < 0)
+	if (listen(sock_fd, 32) < 0)
 	{
 		std::cerr << "Cannot listen socket" << std::endl;
 		return (-1);
