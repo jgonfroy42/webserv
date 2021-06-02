@@ -31,6 +31,7 @@ class Server
 				string	generate_directory_listing();
 
 			private:
+				string	_path;
 				string	_root;
 				string	_index; // vector ??
 				std::map<std::string, bool> _allowed_methods;

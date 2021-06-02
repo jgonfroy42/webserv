@@ -9,7 +9,7 @@ DIR_OBJS	= objs/
 DIR_INC		= ./includes/
 DIR_LIB		= ./libft/
 
-F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp parsing_config.cpp
+F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp parsing_config.cpp classes/Server.cpp
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 
 OBJS		= $(addprefix $(DIR_OBJS), $(F_SRCS:.cpp=.o))

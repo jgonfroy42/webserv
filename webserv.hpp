@@ -22,6 +22,8 @@
 # include <sys/stat.h>
 # include <errno.h>
 #include <fstream>
+#include <vector>
+# include "./srcs/classes/Server.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10

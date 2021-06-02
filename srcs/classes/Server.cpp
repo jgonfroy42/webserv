@@ -4,6 +4,7 @@
 
 Server::Server(const string server_config)
 {
+	std::cout << "hehe " << server_config << std::endl;
 }
 
 Server::~Server()
@@ -41,4 +42,8 @@ string	Server::get_index() const
 
 Server::Location::Location(const string location_config)
 {
+	(void)location_config;
 }
+
+Server::Location::~Location()
+{}

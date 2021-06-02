@@ -1,90 +1,79 @@
 #include "../webserv.hpp"
+#include <sstream>
 
-
-void	find_server_block(string config)
+void	error_bad_config()
 {
-	size_t start_block_server;
-	size_t end_block_server;
-	size_t location_block = 0;
+	std::cerr << "Error: Bad configuration file. 3\n";
+	exit (1);
+}
 
-	// Trouver le premier block
-	start_block_server = config.find_first_of("server {");
-	if (start_block_server == string::npos)
+string	get_block_type(string config, size_t start_block)
+{
+	size_t end = config.find_last_of(" ", start_block);
+	size_t start = config.find_last_of(" ", end - 1);
+	if (start == string::npos)
+		start = -1;
+	string type = config.substr(start + 1, end - start - 1);
+	if (type[0] == '/')
+		return (get_block_type(config, start));
+	else if (type != "server" && type != "location")
+		return ("");
+	return (type);
+}
+
+std::vector<size_t>	find_block(string config, size_t start_pos)
+{
+	size_t start_block;
+	size_t end_block;
+	size_t middle_start_block;
+	size_t middle_end_block;
+	std::vector<size_t> block;
+
+	start_block = config.find('{', start_pos);
+	if (start_block == string::npos)
+		return (block);
+	end_block = config.find('}', start_block);
+	if (end_block == string::npos)
+		return (block);
+	middle_start_block = config.find('{', start_block + 1);
+	while (middle_start_block < end_block && middle_start_block != string::npos)
 	{
-		std::cerr << "Error: Bad configuration file.\n";
-		exit (1);
+		middle_end_block = end_block;
+		end_block = config.find('}', middle_end_block + 1);
+		if (end_block == string::npos)
+			return (block);
+		middle_start_block = config.find('{', middle_start_block + 1);
 	}
-	std::cout << "debut = " << start_block_server << std::endl;
+	block.push_back(start_block);
+	block.push_back(end_block);
+	return (block);
+}
+
+bool	valid_count_brackets(string s) {
+	int count_open = 0;
+	int count_close = 0;
+
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		if (s[i] == '{') count_open++;
+		if (s[i] == '}') count_close++;
+	}
 	
-	// Chercher s'il y a un deuxieme block server
-	if (config.find("server {", start_block_server + 7) != string::npos)
-	{
-		std::cout << "several server !" << std::endl;
-		while ((config.find("location ", location_block)) != string::npos)
-		{
-			location_block = config.find("location ", location_block);
-			std::cout << "location = " << location_block;
-			location_block = config.find("}", location_block);
-			if (location_block == string::npos)
-			{
-				std::cerr << "Error: Bad configuration file.\n";
-				exit (1);
-			}
-			std::cout << " - " << location_block << std::endl;
-		}
-		std::cout << location_block << std::endl;
-		// if (location_block)
-		// look for end of first server here
-	}
-	else // Si pas de deuxième block server
-	{
-		end_block_server = config.find_last_of("}");
-		if (end_block_server == string::npos)
-		{
-			std::cerr << "Error: Bad configuration file.\n";
-			exit (1);
-		}
-		std::cout << "end = " << end_block_server << std::endl;
-		// return block here
-	}
-	
-	// while ((location_block = config.find("location ", location_block)) != string::npos)
-	// {
-	// 	std::cout << "location = " << location_block;
-	// 	location_block = config.find("}", location_block);
-	// 	std::cout << " - " << location_block << std::endl;
-	// }
+	if (count_open != count_close)
+		return (false);
+	return (true);
 }
 
 bool is_double_space(char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); }
 
-void	parsing_config(char *config_file)
+void	parsing_config(char *config_path)
 {
-	int file_fd;
-	char *config_read;
-	int ret_read;
+	std::ifstream config_file;
+    config_file.open(config_path);
 
-	file_fd = open(config_file, O_RDONLY);
-	if (file_fd == -1)
-	{
-		std::cerr << "Error: Couldn't open configuration file." << std::endl;
-		exit (1);
-	}
-	config_read = (char*)malloc(sizeof(char) * 8000);
-	ret_read = read(file_fd, config_read, 8000);
-	if (ret_read == -1 || ret_read == 0)
-	{
-		std::cerr << "Error: Couldn't read configuration file." << std::endl;
-		free(config_read);
-		close(file_fd);
-		exit (1);
-	}
-
-	string config(config_read);
-	free(config_read);
-	close(file_fd);
-
-	// std::cout << config << std::endl;
+    std::stringstream config_read;
+    config_read << config_file.rdbuf();
+    std::string config = config_read.str();
 	
 	// Transforming all new line and tabulations into spaces
 	for (string::iterator it = config.begin(); it != config.end(); it++)
@@ -99,8 +88,20 @@ void	parsing_config(char *config_file)
 	std::string::iterator new_end = std::unique(config.begin(), config.end(), is_double_space);
 	config.erase(new_end, config.end());
 
-	std::cout << config << std::endl;
-	find_server_block(config);
-	
+	if (!valid_count_brackets(config))
+		error_bad_config();
+
+	std::vector<size_t> block = find_block(config, 0);
+	if (block.empty())
+		error_bad_config();
+	string type = get_block_type(config, 7);
+	std::cout << std::endl << type << " at " << block[0] << " " << block[1] << std::endl;
+
+	string block_config = config.substr(block[0] + 2, block[1] - block[0] - 2);
+	// std::cout << block_config << std::endl;
+	Server server1(block_config);
 }
+
+// last block 472 - 507
+// location / 290 365
 
