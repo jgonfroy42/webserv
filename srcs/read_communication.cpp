@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/03 16:17:06 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/03 16:25:53 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 extern int	max_sd;
 extern int	close_co;
 extern int	readable;
-extern int	connectList[PENDING_MAX];
 
 int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
 {
@@ -42,21 +41,16 @@ int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
 			close_co = 1;
 			break;
 		}
-//parsing request
+
+		//parsing request
 		std::string requestStr(buffer);
 		Request request(requestStr, &addr);
 		std::cout << request;
-
-/*
-	parsing_request();
-*/
 
 		//send response
 		std::string response = "Server response\n";
 		send(i, response.c_str(), response.size(), 0);
 
-//		std::cout << "Message receive " << std::endl;
-//		send(i, buffer, data_len, 0);
 	}
 	if (close_co)
 	{

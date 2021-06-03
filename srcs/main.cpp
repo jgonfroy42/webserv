@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 13:57:36 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/03 16:16:49 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/03 16:42:14 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 int	max_sd;
 int	readable;
-int	connectList[PENDING_MAX];
-int nb_co;
 int close_co;
 
 int	main(void)
@@ -57,14 +55,18 @@ int	main(void)
 		return (-1);
 	}
 
-	listen(server_sd, 32);
+	if (listen(server_sd, 32) < 0)
+	{
+		std::cerr << "Error: cannot listen server" << std::endl;
+		close(server_sd);
+		return -1;
+	}
 
 	FD_ZERO(&server);
 	max_sd = server_sd;
 	FD_SET(server_sd, &server);
 	timeout.tv_sec = 3 * 60;
 	timeout.tv_usec = 0;
-	nb_co = 0;
 
 	while (1)
 	{
@@ -90,11 +92,6 @@ int	main(void)
 					std::cout << "Server readable" << std::endl;
 					do
 					{
-//						if (nb_co >= 3)
-//						{
-//							std::cout << "No more space for new connection" << std::endl;
-//							break;
-//						}
 						new_co = accept(server_sd, NULL, NULL);
 						if (new_co < 0)
 						{
@@ -103,7 +100,6 @@ int	main(void)
 							break;
 						}
 						std::cout << "new connection to server" << std::endl;
-						nb_co++;
 						FD_SET(new_co, &server);
 						if (new_co > max_sd)
 							max_sd = new_co;
