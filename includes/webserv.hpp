@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/02 16:33:15 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/03 16:13:11 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,6 @@ int		start_connexion(int server_fd, sockaddr_in *sock_addr);
 
 /*set_communication.cpp*/
 void	read_socks(int server_fd, fd_set socks, fd_set server_sock);
-int		get_data(int i, fd_set server);
+int		get_data(int i, fd_set server, struct sockaddr_in6 addr);
 
 #endif

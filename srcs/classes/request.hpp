@@ -22,7 +22,7 @@ class Request
 	public:
 
 		Request();
-		Request(string requestStr, const sockaddr_in *client_addr);
+		Request(string requestStr, const sockaddr_in6 *client_addr);
 		Request( Request const & src );
 		~Request();
 		string	get_method() const;
@@ -43,7 +43,7 @@ class Request
 
 std::ostream &			operator<<( std::ostream & o, Request const & i );
 
-map		getCGIEnv(const string request, const sockaddr_in *client_addr);
+map		getCGIEnv(const string request, const sockaddr_in6 *client_addr);
 string	getBody(string request);
 map		getRequestHeaders(const string requestStr);
 void	displayMap(map toDisplay);

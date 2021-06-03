@@ -140,7 +140,7 @@ int		getMetaValue(map &metaMap, string request, string metaVar, string toFind)
 	return 0;//choix éditorial a confirmer
 }
 
-map		getCGIEnv(const string request, const sockaddr_in *client_addr)
+map		getCGIEnv(const string request, const sockaddr_in6 *client_addr)
 {
 	map metaMap = initMetaMap();//choix d'initialisation à confirmer
 	parseStartLine(metaMap, string(request, 0, request.find('\n')));

@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 13:57:36 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/02 17:44:45 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/03 16:16:49 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,20 +15,8 @@
 int	max_sd;
 int	readable;
 int	connectList[PENDING_MAX];
-
-//int main(void)
-//{
-//	int			server_fd;
-//	sockaddr_in	*sock_addr = NULL;
-//
-//	if ((server_fd = init_server(sock_addr)) == -1)
-//		return 0;
-//	if (start_connexion(server_fd, sock_addr) == -1)
-//		return 0;
-//	free(sock_addr);
-//  	close(server_fd);
-//	return (0);
-//}
+int nb_co;
+int close_co;
 
 int	main(void)
 {
@@ -36,7 +24,6 @@ int	main(void)
 	int	on = 1;
 	int	new_co = 0;
 	fd_set	server, entries;
-//	sockaddr_in	*sock_addr = NULL;
 	timeval	timeout;
 	struct sockaddr_in6 addr;
 
@@ -50,35 +37,34 @@ int	main(void)
 		std::cerr << "Error : can't put option on socket" << std::endl;
 		return -1;
 	}
-	//ioctl is forbidden : need do test with fcntl
-//	if (ioctl(server_sd, FIONBIO, (char *)&on) < 0)
-//	{
-//		std::cerr << "Error : can't set non blocking" << std::endl;
-//		return -1;
-//	}
-	fcntl(server_sd, F_SETFL, O_NONBLOCK);
-	//est-ce que c'est la ligne qui pose pb ?
-   memset(&addr, 0, sizeof(addr));
-   addr.sin6_family      = AF_INET6;
-   memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-   addr.sin6_port        = htons(PORT);
+	if (fcntl(server_sd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Error : can't set non blocking" << std::endl;
+		return -1;
+	}
 
-    int  rc = bind(server_sd,
-             (struct sockaddr *)&addr, sizeof(addr));
-   if (rc < 0)
+	memset(&addr, 0, sizeof(addr));
+	addr.sin6_family      = AF_INET6;
+	memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
+	addr.sin6_port        = htons(PORT);
+
+	int  rc = bind(server_sd,
+			(struct sockaddr *)&addr, sizeof(addr));
+	if (rc < 0)
 	{
 		std::cerr << "Cannot bind socket" << std::endl;
 		close(server_sd);
 		return (-1);
 	}
 
-   listen(server_sd, 32);
+	listen(server_sd, 32);
 
 	FD_ZERO(&server);
 	max_sd = server_sd;
 	FD_SET(server_sd, &server);
 	timeout.tv_sec = 3 * 60;
 	timeout.tv_usec = 0;
+	nb_co = 0;
 
 	while (1)
 	{
@@ -102,8 +88,13 @@ int	main(void)
 				if (i == server_sd)
 				{
 					std::cout << "Server readable" << std::endl;
-					while (new_co != -1)
+					do
 					{
+//						if (nb_co >= 3)
+//						{
+//							std::cout << "No more space for new connection" << std::endl;
+//							break;
+//						}
 						new_co = accept(server_sd, NULL, NULL);
 						if (new_co < 0)
 						{
@@ -112,13 +103,14 @@ int	main(void)
 							break;
 						}
 						std::cout << "new connection to server" << std::endl;
+						nb_co++;
 						FD_SET(new_co, &server);
 						if (new_co > max_sd)
 							max_sd = new_co;
-					}
+					} while (new_co != -1);
 				}
 				else
-					get_data(i, server);
+					get_data(i, server, addr);
 			}
 		}
 	}
