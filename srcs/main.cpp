@@ -83,10 +83,11 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 
 int main(int argc, char **argv)
 {
+	const char *default_config_path = "config/default.conf";
 	if (argc == 2)
 		parsing_config(argv[1]);
-	// else
-	// 	parsing_config("../config/default.conf");
+	else
+		parsing_config(default_config_path);
 	// int			server_fd;
 	// sockaddr_in	*sock_addr = NULL;
 	// if ((server_fd = init_server(sock_addr)) == -1)

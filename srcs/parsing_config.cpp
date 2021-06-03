@@ -3,7 +3,7 @@
 
 void	error_bad_config()
 {
-	std::cerr << "Error: Bad configuration file. 3\n";
+	std::cerr << "Error: Bad configuration file.\n";
 	exit (1);
 }
 
@@ -66,14 +66,24 @@ bool	valid_count_brackets(string s) {
 
 bool is_double_space(char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); }
 
-void	parsing_config(char *config_path)
+void	parsing_config(const char *config_path)
 {
 	std::ifstream config_file;
     config_file.open(config_path);
+	if (config_file.fail())
+	{
+		std::cerr << "Error: " << strerror(errno) << std::endl;
+		exit (1);
+	}
 
     std::stringstream config_read;
     config_read << config_file.rdbuf();
     std::string config = config_read.str();
+	if (config.empty())
+	{
+		std::cerr << "Error: Couldn't read configuration file.\n";
+		exit (1);
+	}
 	
 	// Transforming all new line and tabulations into spaces
 	for (string::iterator it = config.begin(); it != config.end(); it++)
@@ -100,6 +110,7 @@ void	parsing_config(char *config_path)
 	string block_config = config.substr(block[0] + 2, block[1] - block[0] - 2);
 	// std::cout << block_config << std::endl;
 	Server server1(block_config);
+	std::cout << server1;
 }
 
 // last block 472 - 507

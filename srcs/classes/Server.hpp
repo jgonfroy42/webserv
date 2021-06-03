@@ -15,6 +15,7 @@ class Server
 		~Server();
 
 		int		get_port() const;
+		string	get_host() const;
 		string	get_server_names() const;
 		string	get_root() const;
 		int		get_client_max_body_size() const;
@@ -48,7 +49,10 @@ class Server
 		map_str_str	_error_pages;
 		std::vector<Location> _locations; // ??
 
+		void	set_host_port(const string server_config);
 
 };
+
+std::ostream &			operator<<( std::ostream & o, Server const & i );
 
 #endif

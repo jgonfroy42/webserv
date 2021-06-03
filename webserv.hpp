@@ -42,6 +42,7 @@ void			displayMap(map_str_str toDisplay);
 int				build_response(Request &request, char **response);
 map_str_str		statusCodes();
 
-void	parsing_config(char *config_file);
+void	parsing_config(const char *config_file);
+void	error_bad_config();
 
 #endif
