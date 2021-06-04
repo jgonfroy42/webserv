@@ -16,7 +16,7 @@ class Server
 
 		int		get_port() const;
 		string	get_host() const;
-		string	get_server_names() const;
+		std::vector<string>	get_server_names() const;
 		string	get_root() const;
 		int		get_client_max_body_size() const;
 		string	get_index() const;
@@ -42,7 +42,7 @@ class Server
 
 		int			_port; // pas int ???
 		string		_host;
-		string		_server_names; // vector ??
+		std::vector<string>		_server_names; // vector ??
 		int			_client_max_body_size;
 		string		_root;
 		string		_index;  // vector ??
@@ -50,6 +50,7 @@ class Server
 		std::vector<Location> _locations; // ??
 
 		void	set_host_port(const string server_config);
+		void	set_server_names(const string server_config);
 
 };
 

@@ -44,5 +44,7 @@ map_str_str		statusCodes();
 
 void	parsing_config(const char *config_file);
 void	error_bad_config();
+std::vector<size_t>	find_block(string config, size_t start_pos);
+string	get_block_type(string config, size_t start_block);
 
 #endif
