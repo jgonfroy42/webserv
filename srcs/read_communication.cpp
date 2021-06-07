@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/03 16:25:53 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/07 17:23:57 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,49 @@ extern int	max_sd;
 extern int	close_co;
 extern int	readable;
 
+int init_server(t_param_server *param)
+{
+	int	on = 1;
+
+	if ((param->socketId = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
+	{
+		std::cerr << "Error : cannot create socket" << std::endl;
+		return -1;
+	}
+	if (setsockopt(param->socketId, SOL_SOCKET,  SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+	{
+		std::cerr << "Error : cannot put option on socket" << std::endl;
+		return -1;
+	}
+	if (fcntl(param->socketId, F_SETFL, O_NONBLOCK) < 0)
+	{
+		std::cerr << "Error : cannot set non blocking" << std::endl;
+		return -1;
+	}
+	memset(&param->socketAddr, 0, sizeof(param->socketAddr));
+	param->socketAddr.sin6_family      = AF_INET6;
+	memcpy(&param->socketAddr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
+	param->socketAddr.sin6_port        = htons(PORT);
+	if (bind(param->socketId, (struct sockaddr *)&param->socketAddr, sizeof(param->socketAddr)) < 0)
+	{
+		std::cerr << "Error : cannot bind socket" << std::endl;
+		close(param->socketId);
+		return (-1);
+	}
+	if (listen(param->socketId, 32) < 0)
+	{
+		std::cerr << "Error: cannot listen to server" << std::endl;
+		close(param->socketId);
+		return -1;
+	}
+	return 0;
+}
+
 int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
 {
 	int	data_len, close_co;
 	char	buffer[BUFFER_SIZE];
 
-	std::cout << "Connection readable" << std::endl;
 	close_co = 0;
 	while (1)
 	{

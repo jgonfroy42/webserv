@@ -31,11 +31,9 @@ $(DIR_OBJS):
 		mkdir $(DIR_OBJS)
 
 clean:
-		make clean -C libft
 		$(RM) $(DIR_OBJS)
 
 fclean:		clean
-		make fclean -C libft
 		$(RM) $(NAME)
 
 re:		fclean all
