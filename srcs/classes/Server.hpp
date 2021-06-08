@@ -22,8 +22,10 @@ class Server
 		string	get_root() const;
 		int		get_client_max_body_size() const;
 		std::vector<string>	get_index() const;
-		string	get_error_page(string error_code) const;
 		
+		string	get_error_page(string error_code) const;
+		// Location	get_location(string path) const;
+
 		class Location 
 		{
 			public:
@@ -48,6 +50,7 @@ class Server
 		std::vector<Location> get_locations() const;
 	
 	private:
+		int			_id;
 		int			_port;
 		string		_host;
 		std::vector<string>		_server_names;
