@@ -6,15 +6,11 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/07 17:23:57 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/08 12:28:31 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
-
-extern int	max_sd;
-extern int	close_co;
-extern int	readable;
 
 int init_server(t_param_server *param)
 {
@@ -54,12 +50,69 @@ int init_server(t_param_server *param)
 	return 0;
 }
 
-int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
+void launch_server(t_param_server *param)
 {
-	int	data_len, close_co;
+	fd_set entries;
+	int readable, max_sd;
+	int	new_co = 0;
+
+	FD_ZERO(&param->socket);
+	max_sd = param->socketId;
+	FD_SET(param->socketId, &param->socket);
+	while (1)
+	{
+		memcpy(&entries, &param->socket, sizeof(param->socket));
+		std::cout << "Waiting for connection..." << std::endl;
+		if ((readable = select(max_sd + 1, &entries, NULL, NULL, &param->timeout)) < 0)
+		{
+			std::cerr << "Error: cannot select" << std::endl;
+			return ;
+		}
+		if (readable == 0)
+		{
+			std::cout << "Time out" << std::endl;
+			return ;
+		}
+		for (int i = 0; i <= max_sd && readable; ++i)
+		{
+			if (FD_ISSET(i, &entries))
+			{
+				readable--;
+				if (i == param->socketId)
+				{
+					do
+					{
+						new_co = accept(param->socketId, NULL, NULL);
+						if (new_co < 0)
+						{
+							if (errno != EAGAIN)
+								std::cerr << "Error: cannot accept new connection" << std::endl;
+							break;
+						}
+						FD_SET(new_co, &param->socket);
+						if (new_co > max_sd)
+							max_sd = new_co;
+					} while (new_co != -1);
+				}
+				else
+					if (get_data(i, param->socketAddr))
+					{
+						close(i);
+						FD_CLR(i, &param->socket);
+						if (i == max_sd)
+							while (FD_ISSET(max_sd, &param->socket) == false)
+								max_sd--;
+					}
+			}
+		}
+	}
+}
+
+int	get_data(int i, struct sockaddr_in6 addr)
+{
+	int	data_len;
 	char	buffer[BUFFER_SIZE];
 
-	close_co = 0;
 	while (1)
 	{
 		data_len = recv(i, buffer, sizeof(buffer), 0);
@@ -68,15 +121,14 @@ int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
 			if (errno != EWOULDBLOCK)
 			{
 				std::cerr << "Error: receive didn't work" << std::endl;
-				close_co = 1;
+				return 1;
 			}
-			break;
+			return 0;
 		}
 		if (data_len == 0)
 		{
 			std::cout << "Connection closed" << std::endl;
-			close_co = 1;
-			break;
+			return 1;
 		}
 
 		//parsing request
@@ -87,16 +139,6 @@ int	get_data(int i, fd_set server, struct sockaddr_in6 addr)
 		//send response
 		std::string response = "Server response\n";
 		send(i, response.c_str(), response.size(), 0);
-
-	}
-	if (close_co)
-	{
-		close(i);
-		close_co--;
-		FD_CLR(i, &server);
-		if (i == max_sd)
-			while (FD_ISSET(max_sd, &server) == false)
-				max_sd--;
 	}
 	return 0;
 }
