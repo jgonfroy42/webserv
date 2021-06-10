@@ -16,7 +16,6 @@
 # include <limits.h>
 # include <sys/time.h>
 # include "./srcs/classes/request.hpp"
-# include "./libft/libft.h"
 # include <time.h>
 # include <fcntl.h>
 # include <sys/stat.h>
@@ -24,6 +23,7 @@
 #include <fstream>
 #include <vector>
 # include "./srcs/classes/Server.hpp"
+# include "./srcs/classes/Location.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10

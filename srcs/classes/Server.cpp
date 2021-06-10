@@ -1,7 +1,10 @@
 #include "Server.hpp"
 #include "../../webserv.hpp"
 
-string	get_configuration(const string server_config, const string label, bool optional)
+
+// ************* SERVER PARSING / SETTER ********** //
+
+string	Server::get_configuration(const string server_config, const string label, bool optional)
 {
 	size_t label_pos = server_config.find(label);
 
@@ -21,135 +24,6 @@ string	get_configuration(const string server_config, const string label, bool op
 		error_bad_config();
 	return (line);
 }
-
-// ********** LOCATION CLASS ************ //
-
-Server::Location::Location(const string location_config)
-{
-	size_t split_pos;
-	// std::cout << "In location = " << location_config << std::endl;
-
-	// Checking if not another block inside location block
-	size_t start_block = location_config.find('{', 0);
-	if (location_config.find('{', start_block + 1) != string::npos)
-		error_bad_config();
-	
-	// Setting path
-	this->_path = location_config.substr(0, location_config.find(" "));
-	
-	// Setting root
-	string root_line = get_configuration(location_config, "root", true);
-	if (root_line != "")
-	{
-		split_pos = root_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		this->_root = root_line.substr(split_pos + 1);
-	}
-	
-	// Setting index
-	string index_line = get_configuration(location_config, " index ", true);
-	if (index_line != "")
-	{
-		split_pos = 0;
-		while ((split_pos = index_line.find(' ', split_pos + 1)) != string::npos)
-		{
-			if (index_line.find(' ', split_pos + 1) == string::npos)
-				this->_index.push_back(index_line.substr(split_pos + 1));
-			else
-				this->_index.push_back(index_line.substr(split_pos + 1, index_line.find(' ', split_pos + 1) - split_pos - 1));
-		}
-		if (this->_index.empty() == true)
-			error_bad_config();
-	}
-	
-	// Setting methods
-	string methods_line = get_configuration(location_config, "methods", true);
-	this->_allowed_methods["GET"] = false;
-	this->_allowed_methods["POST"] = false;
-	this->_allowed_methods["DELETE"] = false;
-	if (methods_line != "")
-	{
-		split_pos = 0;
-		while ((split_pos = methods_line.find(' ', split_pos + 1)) != string::npos)
-		{
-			string method;
-			if (methods_line.find(' ', split_pos + 1) == string::npos)
-				method = methods_line.substr(split_pos + 1);
-			else
-				method = methods_line.substr(split_pos + 1, methods_line.find(' ', split_pos + 1) - split_pos - 1);
-			if (method == "GET")
-				this->_allowed_methods["GET"] = true;
-			else if (method == "POST")
-				this->_allowed_methods["POST"] = true;
-			else if (method == "DELETE")
-				this->_allowed_methods["DELETE"] = true;
-			// else
-				// error_bad_config("Bad method");
-		}
-	}
-	else
-	{
-		this->_allowed_methods["GET"] = true;
-		this->_allowed_methods["POST"] = true;
-		this->_allowed_methods["DELETE"] = true;
-	}
-	
-	
-	// Setting auto index
-	string auto_index_line = get_configuration(location_config, "autoindex", true);
-	if (auto_index_line != "")
-	{
-		split_pos = auto_index_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		string boolean = auto_index_line.substr(split_pos + 1);
-		if (boolean == "on")
-			this->_auto_index = true;
-		else
-			this->_auto_index = false;
-	}
-	else
-		this->_auto_index = false;
-}
-
-Server::Location::~Location()
-{}
-
-// ************* LOCATION GETTER ********** //
-
-string Server::Location::get_path() const
-{
-	return (this->_path);
-}
-
-string Server::Location::get_root() const
-{
-	return (this->_root);
-}
-
-std::vector<string> Server::Location::get_index() const
-{
-	return (this->_index);
-}
-
-bool	Server::Location::auto_index_is_on() const
-{
-	return (this->_auto_index);
-}
-
-bool	Server::Location::method_is_allowed(const string method) const
-{
-	if ( this->_allowed_methods.find(method) == this->_allowed_methods.end() ) {
-		return (false);
-	} else {
-		// std::cout << "in get method" << method << this->_allowed_methods.at(method) << std::endl;
-		return (this->_allowed_methods.at(method));
-	}
-}
-
-// ************* SERVER PARSING / SETTER ********** //
-
 
 void	Server::set_host_port(const string server_config)
 {
@@ -181,13 +55,39 @@ void Server::set_server_names(const string server_config)
 		error_bad_config();
 }
 
+void Server::set_error_pages(const string server_config)
+{
+	size_t error_page_pos = 0;
+	while ((error_page_pos = server_config.find("error_page", error_page_pos + 1)) != string::npos)
+	{
+		size_t end_line_pos = server_config.find(";", error_page_pos);
+		if (end_line_pos == string::npos)
+			error_bad_config();
+		string line = server_config.substr(error_page_pos, end_line_pos - error_page_pos);
+		size_t start_path = line.find_last_of(" ");
+		string path = line.substr(start_path + 1);
+		// std::cout << path << std::endl;
+		size_t start_code = line.find(" ");
+		size_t end_code = start_code + 1;
+		while ((end_code = line.find(" ", end_code + 1)) != string::npos)
+		{
+			string code = line.substr(start_code + 1, end_code - start_code - 1);
+			// std::cout << code << std::endl;
+			this->_error_pages[code] = path;
+			start_code = end_code;
+		}
+	}
+}
+
 // ********** SERVER CONSTRUCTOR / DESTRUCTOR ************ //
 
-Server::Server(string server_config)
+Server::Server(string server_config, int id)
 {
 	size_t split_pos;
 
 	// std::cout << server_config << std::endl;
+
+	this->_id = id;
 
 	// setting port
 	set_host_port(server_config);
@@ -196,6 +96,7 @@ Server::Server(string server_config)
 
 	// setting locations
 	std::vector<size_t> location = find_block(server_config, 1);
+	int id_location = 0;
 	while (location.empty() == false)
 	{
 		if (get_block_type(server_config, location[0]) != "location")
@@ -204,11 +105,11 @@ Server::Server(string server_config)
 		
 		// std::cout << start_location << " " << server_config.substr(start_location, 15) << std::endl << std::endl;
 		
-		Location new_location(server_config.substr(start_location + 2, location[1] - start_location - 2));
+		Location new_location(server_config.substr(start_location + 2, location[1] - start_location - 2), id_location);
 		this->_locations.push_back(new_location);
 		server_config.erase(start_location - 8, location[1] - start_location + 9);
 		location = find_block(server_config, 0);
-		
+		id_location++;
 		// std::cout << std::endl << server_config << std::endl << std::endl;
 	}
 
@@ -249,49 +150,51 @@ Server::Server(string server_config)
 	}
 	else 
 		this->_client_max_body_size = 8000;
-
+	
+	//Setting error_pages
+	set_error_pages(server_config);
 }
 
 Server::~Server()
-{
-}
+{}
+
+
 
 // ********** SERVER GETTER ************ //
 
 int		Server::get_port() const
-{
-	return (_port);
-}
+{ return (this->_port); }
 
 string	Server::get_host() const
-{
-	return (_host);
-}
+{ return (this->_host); }
 
 std::vector<string>	Server::get_server_names() const
-{
-	return (_server_names);
-}
+{ return (this->_server_names); }
 
 string	Server::get_root() const
-{
-	return (_root);
-}
+{ return (this->_root); }
 
 int		Server::get_client_max_body_size() const
-{
-	return (_client_max_body_size);
-}
+{ return (this->_client_max_body_size); }
 
 std::vector<string>	Server::get_index() const
+{ return (this->_index); }
+
+std::vector<Location> Server::get_locations() const
+{ return (this->_locations); }
+
+std::map<string, string> Server::get_error_pages() const
+{ return (this->_error_pages); }
+
+string Server::get_error_page(string error_code) const
 {
-	return (_index);
+	if ( this->_error_pages.find(error_code) == this->_error_pages.end() )
+		return ("");
+	else
+		return (this->_error_pages.at(error_code));
 }
 
-std::vector<Server::Location> Server::get_locations() const
-{
-	return (_locations);
-}
+
 
 // ************ << OPERATOR **************** //
 
@@ -319,35 +222,22 @@ std::ostream &			operator<<( std::ostream & o, Server const & i )
 	else
 		o << "Index:\t\t[none]\n";
 	o << "Max body size:\t" << i.get_client_max_body_size() << std::endl;
-	std::vector<Server::Location> locations = i.get_locations();
-	for (std::vector<Server::Location>::iterator it = locations.begin() ; it != locations.end(); ++it)
+	
+	map_str_str error_pages = i.get_error_pages();
+	if (error_pages.empty() == false)
+	{
+		o << "Error pages:\n";
+		for(map_str_str::const_iterator it_error = error_pages.begin(); it_error != error_pages.end(); ++it_error)
+		{
+			std::cout << "   " << it_error->first << " " << it_error->second << "\n";
+		}
+	}
+	
+	std::vector<Location> locations = i.get_locations();
+	for (std::vector<Location>::iterator it = locations.begin() ; it != locations.end(); ++it)
 		o << *it;
+	o << std::endl;
+	
 	return o;
 }
 
-std::ostream &			operator<<( std::ostream & o, Server::Location const & i )
-{
-	o << std::endl << "- Location " << i.get_path() << std::endl;
-	o << "    Root:\t" << i.get_root() << std::endl;
-	std::vector<string> loc_index = i.get_index();
-	if (loc_index.empty() == false)
-	{
-		o << "    Index:\t";
-		for (std::vector<string>::iterator it_index = loc_index.begin(); it_index != loc_index.end(); ++it_index)
-		{
-			o << *it_index << " ";
-		}
-		o << std::endl;
-	}
-	else
-		o << "    Index:\t[none]\n";
-	o << "    Autoindex:\t" << i.auto_index_is_on() << std::endl;
-	o << "    Available methods:\n";
-	if (i.method_is_allowed("GET"))
-		o << "    \tGET\n";
-	if (i.method_is_allowed("POST"))
-		o << "    \tPOST\n";
-	if (i.method_is_allowed("DELETE"))
-		o << "    \tDELETE\n";
-	return o;
-}

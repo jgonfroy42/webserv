@@ -109,7 +109,7 @@ void	parsing_config(const char *config_path)
 
 	string block_config = config.substr(block[0] + 2, block[1] - block[0] - 2);
 	// std::cout << block_config << std::endl;
-	Server server1(block_config);
+	Server server1(block_config, 0);
 	std::cout << server1;
 }
 
