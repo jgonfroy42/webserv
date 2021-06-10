@@ -8,7 +8,7 @@ Request::Request()
 {
 }
 
-Request::Request(const string requestStr, const sockaddr_in *client_addr)
+Request::Request(const string requestStr, const sockaddr_in6 *client_addr)
 {
 	_CGI_env = getCGIEnv(requestStr, client_addr);
 	_method = _CGI_env["REQUEST_METHOD"];
