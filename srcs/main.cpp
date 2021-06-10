@@ -51,7 +51,7 @@ int start_connexion(int server_fd, sockaddr_in *sock_addr)
 
 		//get request
 		recv(new_connexion, &buffer, BUFFER_SIZE, 0);
-		std::cout << buffer << std::endl;
+		std::cout << "requestStr is:\n" << string(buffer) << std::endl;
 
 		//parsing request
 		Request request(buffer, sock_addr);

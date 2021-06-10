@@ -36,7 +36,7 @@ Request::Request(const Request &src)
 
 Request::~Request()
 {
-	delete _body;
+	//delete _body;
 }
 
 /*
@@ -124,23 +124,17 @@ map_str_str		Request::parse_headers(const string request_str)
 	return headers;
 }
 
-char	*Request::parse_body(const char *request)
+string Request::parse_body(const char *request)
 {
-	char *tmp;
-	char *body;
-	size_t size;
-	if ((tmp = strstr(request, "\n\n")) == NULL)
-		body = new char[0];
+	//char *tmp;
+	string requestStr = string(request);
+	size_t pos;
+	char separator[5] = {13, 10, 13, 10, 0};//sequence of non printable chars that separate the headers of the body in a client request(chrome) + \0
+	
+	if ((pos = requestStr.find(separator)) == string::npos)
+		return string();
 	else
-	{
-		tmp++;
-		tmp++;
-		size = sizeof(tmp);
-		body = new char[size];
-		memcpy(body, tmp, size);//memcp =leaks?
-		std::cout << "body is:\n" << body << std::endl;
-	}
-	return body;
+		return string(requestStr, pos + 4);
 }
 
 int Request::parse_start_line(string start_line)
@@ -228,7 +222,7 @@ map_str_str Request::get_headers() const
 	return (_headers);
 }
 
-char *Request::get_body() const
+string Request::get_body() const
 {
 	return (_body);
 }

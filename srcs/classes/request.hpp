@@ -18,7 +18,7 @@ public:
 	bool is_CGI() const;
 	int parse_start_line(string start_line);
 	map_str_str parse_headers(const string request_str);
-	char *parse_body(const char *request_str);
+	string parse_body(const char *request_str);
 
 	//GETTERS:
 	string get_method() const;
@@ -27,12 +27,13 @@ public:
 	string get_query_string() const;
 	string get_protocol() const;
 	map_str_str get_headers() const;
-	char *get_body() const;
+	string get_body() const;
 
 	Request &operator=(Request const &rhs);
 
 private:
-	char *_body;
+	//char *_body;
+	string _body;
 	string _method;
 	string _URI;
 	string _path;
