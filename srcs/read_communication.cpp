@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/10 11:27:02 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/10 14:06:51 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ int init_server(t_param_server *param)
 {
 	int	on = 1;
 
+	//creation du socket qui va recevoir les connections, besoin d'un socket par port
 	if ((param->socketId = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
 	{
 		std::cerr << "Error : cannot create socket" << std::endl;
@@ -41,7 +42,8 @@ int init_server(t_param_server *param)
 		close(param->socketId);
 		return (-1);
 	}
-	if (listen(param->socketId, 3000) < 0)
+	//nombre de connection max, 512 par defaut sur nginx ?
+	if (listen(param->socketId, 512) < 0)
 	{
 		std::cerr << "Error: cannot listen to server" << std::endl;
 		close(param->socketId);
@@ -53,7 +55,7 @@ int init_server(t_param_server *param)
 void launch_server(t_param_server *param)
 {
 	fd_set entries;
-	int readable, max_sd;
+	int nb_readable, max_sd;
 	int	new_co = 0;
 
 	FD_ZERO(&param->socket);
@@ -63,21 +65,23 @@ void launch_server(t_param_server *param)
 	{
 		memcpy(&entries, &param->socket, sizeof(param->socket));
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((readable = select(max_sd + 1, &entries, NULL, NULL, &param->timeout)) < 0)
+		if ((nb_readable = select(max_sd + 1, &entries, NULL, NULL, &param->timeout)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return ;
 		}
-		if (readable == 0)
+		if (nb_readable == 0)
 		{
 			std::cout << "Time out" << std::endl;
 			return ;
 		}
-		for (int i = 0; i <= max_sd && readable; ++i)
+		for (int i = 0; i <= max_sd && nb_readable; ++i)
 		{
+			//check un a un si les descripteurs qui sont lisibles
 			if (FD_ISSET(i, &entries))
 			{
-				readable--;
+				nb_readable--;
+				//si le serveur est lisible ca veut dire qu'il a des connections entrantes a accepter
 				if (i == param->socketId)
 				{
 					do
@@ -94,9 +98,11 @@ void launch_server(t_param_server *param)
 							max_sd = new_co;
 					} while (new_co != -1);
 				}
+				//sinon, ca veut dire qu'on peut faire un read sur les connections
 				else
 					if (get_data(i, param->socketAddr))
 					{
+						//si le read renvoie 0, la connection est fini donc on la close ici
 						close(i);
 						FD_CLR(i, &param->socket);
 						if (i == max_sd)

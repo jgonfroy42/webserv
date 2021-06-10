@@ -14,8 +14,6 @@ SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 
 OBJS		= $(addprefix $(DIR_OBJS), $(F_SRCS:.cpp=.o))
 
-LIBFT		= $(DIR_LIB)libft.a
-
 HEADER		= -I $(DIR_INC)
 
 all:		$(NAME)
