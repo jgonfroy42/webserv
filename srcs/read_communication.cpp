@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/08 12:28:31 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/10 11:27:02 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int init_server(t_param_server *param)
 		close(param->socketId);
 		return (-1);
 	}
-	if (listen(param->socketId, 32) < 0)
+	if (listen(param->socketId, 3000) < 0)
 	{
 		std::cerr << "Error: cannot listen to server" << std::endl;
 		close(param->socketId);
@@ -113,18 +113,9 @@ int	get_data(int i, struct sockaddr_in6 addr)
 	int	data_len;
 	char	buffer[BUFFER_SIZE];
 
-	while (1)
-	{
 		data_len = recv(i, buffer, sizeof(buffer), 0);
 		if (data_len < 0)
-		{
-			if (errno != EWOULDBLOCK)
-			{
-				std::cerr << "Error: receive didn't work" << std::endl;
-				return 1;
-			}
 			return 0;
-		}
 		if (data_len == 0)
 		{
 			std::cout << "Connection closed" << std::endl;
@@ -139,6 +130,5 @@ int	get_data(int i, struct sockaddr_in6 addr)
 		//send response
 		std::string response = "Server response\n";
 		send(i, response.c_str(), response.size(), 0);
-	}
 	return 0;
 }
