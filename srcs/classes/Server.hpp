@@ -38,6 +38,7 @@ class Server
 		string		get_error_page(string error_code) const;
 		map_str_str get_error_pages() const;
 		vec_location get_locations() const;
+		Location	server_contains_location(string path) const;
 	
 	private:
 		int				_id;

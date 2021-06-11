@@ -4,6 +4,17 @@
 #include <algorithm>
 #include "./classes/Server.hpp"
 
+std::vector<int>	get_ports(std::vector<Server> servers)
+{
+	std::vector<int> ports;
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+		ports.push_back(it->get_port());
+	std::sort( ports.begin(), ports.end() );
+	ports.erase( std::unique( ports.begin(), ports.end() ), ports.end() );
+	return (ports);
+}
+
+
 void	error_bad_config(string error)
 {
 	std::cerr << "Error: Bad configuration file.\n\t-> " << error << std::endl;
@@ -124,5 +135,6 @@ std::vector<Server>		parsing_config(const char *config_path)
 
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
 		std::cout << *it;
+	get_ports(servers);
 	return (servers);
 }

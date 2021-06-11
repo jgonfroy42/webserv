@@ -12,6 +12,7 @@ typedef std::map<std::string, bool> map_str_bool;
 class Location
 {
 	public:
+		Location();
 		Location(const string location_config, int id);
 		~Location();
 
@@ -23,6 +24,7 @@ class Location
 		bool		auto_index_is_on() const;
 		pair		get_redirect() const;
 		string		get_cgi_path() const;
+		bool		empty() const;
 
 	private:
 		int				_id;

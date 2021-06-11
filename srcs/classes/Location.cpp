@@ -4,6 +4,8 @@
 
 // **************** LOCATION CONSTRUCTOR / DESTRUCTOR **************** //
 
+Location::Location() { this->_id = -1; }
+
 Location::Location(const string location_config, int id)
 {
 	// Checking if not another block inside location block
@@ -57,7 +59,12 @@ string Location::get_cgi_path() const
 pair		Location::get_redirect() const 
 { return (this->_redirect); }
 
-
+bool		Location::empty() const
+{
+	if (this->_id == -1)
+		return (true);
+	return (false);
+}
 
 
 
