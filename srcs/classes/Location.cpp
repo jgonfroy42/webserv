@@ -1,5 +1,5 @@
 #include "Location.hpp"
-#include "../../webserv.hpp"
+#include "../../includes/webserv.hpp"
 
 
 // **************** LOCATION CONSTRUCTOR / DESTRUCTOR **************** //
