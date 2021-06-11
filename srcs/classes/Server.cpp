@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "../../webserv.hpp"
+#include <sstream>
 
 // ********** SERVER CONSTRUCTOR / DESTRUCTOR ************ //
 
@@ -93,7 +94,8 @@ void	Server::set_host_port(const string server_config)
 	if (separator_pos == string::npos)
 		error_bad_config("Missing port.");
 	this->_host = port_line.substr(split_pos + 1, separator_pos - split_pos - 1);
-	this->_port = stoi(port_line.substr(separator_pos + 1));
+	std::istringstream iss (port_line.substr(separator_pos + 1));
+	iss >> this->_port;
 }
 
 void Server::set_server_names(const string server_config)
@@ -190,7 +192,8 @@ void	Server::set_body_max_size(const string server_config)
 		size_t split_pos = max_size_line.find(' ');
 		if (split_pos == string::npos)
 			error_bad_config("Invalid instruction. (client max body size)");
-		this->_client_max_body_size = stoi(max_size_line.substr(split_pos + 1));
+		std::istringstream iss (max_size_line.substr(split_pos + 1));
+		iss >> this->_client_max_body_size; // = stoi(max_size_line.substr(split_pos + 1));
 	}
 	else 
 		this->_client_max_body_size = 8000;

@@ -1,5 +1,8 @@
 #include "../webserv.hpp"
 #include <sstream>
+#include <string.h>
+#include <algorithm>
+#include "./classes/Server.hpp"
 
 void	error_bad_config(string error)
 {

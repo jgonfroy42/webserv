@@ -1,7 +1,17 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "../../webserv.hpp"
+# include <iostream>
+# include <string>
+# include <sys/types.h>
+# include <unistd.h>
+# include <stdlib.h>
+# include <stdio.h>
+# include <map>
+# include <fcntl.h>
+# include <errno.h>
+#include <fstream>
+#include <vector>
 
 class Location;
 
