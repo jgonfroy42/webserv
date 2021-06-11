@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/11 14:44:28 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/11 14:55:49 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,6 @@
 #include <errno.h>
 #include <vector>
 
-class Server;
-
 typedef struct s_param_server
 {
 	int		socketId;
@@ -67,6 +65,8 @@ typedef struct s_param_server
 
 typedef std::string string;
 typedef std::map<std::string, std::string> map_str_str;
+
+class Server;
 
 void			displayMap(map_str_str toDisplay);
 int				build_response(Request &request, char **response);

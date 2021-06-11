@@ -4,11 +4,12 @@
 #include "../../includes/webserv.hpp"
 
 #include <utility>
+typedef std::string string;
 typedef std::pair<string, string> pair;
 typedef std::vector<string> vec_string;
 typedef std::map<std::string, bool> map_str_bool;
 
-class Location 
+class Location
 {
 	public:
 		Location(const string location_config, int id);
