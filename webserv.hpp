@@ -16,12 +16,14 @@
 # include <limits.h>
 # include <sys/time.h>
 # include "./srcs/classes/request.hpp"
-# include "./libft/libft.h"
 # include <time.h>
 # include <fcntl.h>
 # include <sys/stat.h>
 # include <errno.h>
 #include <fstream>
+#include <vector>
+# include "./srcs/classes/Server.hpp"
+# include "./srcs/classes/Location.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10
@@ -39,5 +41,10 @@ typedef std::map<std::string, std::string> map_str_str;
 void			displayMap(map_str_str toDisplay);
 int				build_response(Request &request, char **response);
 map_str_str		statusCodes();
+
+std::vector<Server>	parsing_config(const char *config_file);
+void	error_bad_config(string error);
+std::vector<size_t>	find_block(string config, size_t start_pos);
+string	get_block_type(string config, size_t start_block);
 
 #endif

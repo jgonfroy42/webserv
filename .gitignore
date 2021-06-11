@@ -1,6 +1,4 @@
-libft/*.o
-libft/libft.a
+.vscode
 objs
 webserv
 dirty_example
-srcs/test.cpp
