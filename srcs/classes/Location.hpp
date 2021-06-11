@@ -33,6 +33,13 @@ class Location
 		pair			_redirect;
 		string			_cgi_path;
 
+		void	set_root(const string location_config);
+		void	set_indexes(const string location_config);
+		void	set_methods(const string location_config);
+		void	set_autoindex(const string location_config);
+		void	set_redirection(const string location_config);
+		void	set_cgi_path(const string location_config);
+
 		string	get_configuration(const string server_config, const string label, bool optional);
 };
 

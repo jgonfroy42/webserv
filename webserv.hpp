@@ -42,8 +42,8 @@ void			displayMap(map_str_str toDisplay);
 int				build_response(Request &request, char **response);
 map_str_str		statusCodes();
 
-void	parsing_config(const char *config_file);
-void	error_bad_config();
+std::vector<Server>	parsing_config(const char *config_file);
+void	error_bad_config(string error);
 std::vector<size_t>	find_block(string config, size_t start_pos);
 string	get_block_type(string config, size_t start_block);
 

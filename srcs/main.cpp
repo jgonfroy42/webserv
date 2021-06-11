@@ -83,18 +83,20 @@ int	start_connexion(int server_fd, sockaddr_in *sock_addr)
 
 int main(int argc, char **argv)
 {
+	std::vector<Server> servers;
+
 	const char *default_config_path = "config/default.conf";
 	if (argc == 2)
-		parsing_config(argv[1]);
+		servers = parsing_config(argv[1]);
 	else
-		parsing_config(default_config_path);
-	// int			server_fd;
-	// sockaddr_in	*sock_addr = NULL;
-	// if ((server_fd = init_server(sock_addr)) == -1)
-	// 	return 0;
-	// if (start_connexion(server_fd, sock_addr) == -1)
-	// 	return 0;
-	// free(sock_addr);
-  	// close(server_fd);
+		servers = parsing_config(default_config_path);
+	int			server_fd;
+	sockaddr_in	*sock_addr = NULL;
+	if ((server_fd = init_server(sock_addr)) == -1)
+		return 0;
+	if (start_connexion(server_fd, sock_addr) == -1)
+		return 0;
+	free(sock_addr);
+  	close(server_fd);
 	return (0);
 }

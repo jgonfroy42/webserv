@@ -2,147 +2,27 @@
 #include "../../webserv.hpp"
 
 
-string	Location::get_configuration(const string server_config, const string label, bool optional)
-{
-	size_t label_pos = server_config.find(label);
-
-	if (label_pos == string::npos && optional == false)
-		error_bad_config();
-	else if (label_pos == string::npos && optional == true)
-		return ("");
-
-	size_t end_line_pos = server_config.find(";", label_pos);
-	if (end_line_pos == string::npos)
-		error_bad_config();
-
-	string line = server_config.substr(label_pos, end_line_pos - label_pos);
-	
-	// Check si doublon
-	if (server_config.find(label, end_line_pos + 1) != string::npos)
-		error_bad_config();
-	return (line);
-}
-
-// ********** LOCATION CLASS ************ //
+// **************** LOCATION CONSTRUCTOR / DESTRUCTOR **************** //
 
 Location::Location(const string location_config, int id)
 {
-	size_t split_pos;
-	// std::cout << "In location = " << location_config << std::endl;
-
 	// Checking if not another block inside location block
 	size_t start_block = location_config.find('{', 0);
 	if (location_config.find('{', start_block + 1) != string::npos)
-		error_bad_config();
+		error_bad_config("Forbidden block inside location block.");
 	
 	this->_id = id;
-
-	// Setting path
 	this->_path = location_config.substr(0, location_config.find(" "));
-	
-	// Setting root
-	string root_line = get_configuration(location_config, "root", true);
-	if (root_line != "")
-	{
-		split_pos = root_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		this->_root = root_line.substr(split_pos + 1);
-	}
-	
-	// Setting index
-	string index_line = get_configuration(location_config, " index ", true);
-	if (index_line != "")
-	{
-		split_pos = 0;
-		while ((split_pos = index_line.find(' ', split_pos + 1)) != string::npos)
-		{
-			if (index_line.find(' ', split_pos + 1) == string::npos)
-				this->_index.push_back(index_line.substr(split_pos + 1));
-			else
-				this->_index.push_back(index_line.substr(split_pos + 1, index_line.find(' ', split_pos + 1) - split_pos - 1));
-		}
-		if (this->_index.empty() == true)
-			error_bad_config();
-	}
-	
-	// Setting methods
-	string methods_line = get_configuration(location_config, "methods", true);
-	this->_allowed_methods["GET"] = false;
-	this->_allowed_methods["POST"] = false;
-	this->_allowed_methods["DELETE"] = false;
-	if (methods_line != "")
-	{
-		split_pos = 0;
-		while ((split_pos = methods_line.find(' ', split_pos + 1)) != string::npos)
-		{
-			string method;
-			if (methods_line.find(' ', split_pos + 1) == string::npos)
-				method = methods_line.substr(split_pos + 1);
-			else
-				method = methods_line.substr(split_pos + 1, methods_line.find(' ', split_pos + 1) - split_pos - 1);
-			if (method == "GET")
-				this->_allowed_methods["GET"] = true;
-			else if (method == "POST")
-				this->_allowed_methods["POST"] = true;
-			else if (method == "DELETE")
-				this->_allowed_methods["DELETE"] = true;
-			// else
-				// error_bad_config("Bad method");
-		}
-	}
-	else
-	{
-		this->_allowed_methods["GET"] = true;
-		this->_allowed_methods["POST"] = true;
-		this->_allowed_methods["DELETE"] = true;
-	}
-	
-	// Setting auto index
-	string auto_index_line = get_configuration(location_config, "autoindex", true);
-	if (auto_index_line != "")
-	{
-		split_pos = auto_index_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		string boolean = auto_index_line.substr(split_pos + 1);
-		if (boolean == "on")
-			this->_auto_index = true;
-		else
-			this->_auto_index = false;
-	}
-	else
-		this->_auto_index = false;
-
-	// Setting redirection
-	string redirect_line = get_configuration(location_config, "redirect", true);
-	if (redirect_line != "")
-	{
-		split_pos = redirect_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		size_t second_split_pos = redirect_line.find(' ', split_pos + 1);
-		if (second_split_pos == string::npos)
-			error_bad_config();
-		this->_redirect.first = redirect_line.substr(split_pos + 1, second_split_pos - split_pos - 1);
-		this->_redirect.second = redirect_line.substr(second_split_pos + 1);
-	}
-
-	// Setting cgi_path
-	string cgi_line = get_configuration(location_config, "cgi_path", true);
-	if (cgi_line != "")
-	{
-		split_pos = cgi_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config();
-		this->_cgi_path = cgi_line.substr(split_pos + 1);
-	}
+	set_root(location_config);
+	set_indexes(location_config);
+	set_methods(location_config);
+	set_autoindex(location_config);
+	set_redirection(location_config);
+	set_cgi_path(location_config);
 }
 
 Location::~Location()
 {}
-
-
 
 
 
@@ -181,6 +61,143 @@ pair		Location::get_redirect() const
 
 
 
+// ******************** SETTERS / PARSER ****************** //
+
+string	Location::get_configuration(const string server_config, const string label, bool optional)
+{
+	size_t label_pos = server_config.find(label);
+
+	if (label_pos == string::npos && optional == false)
+		error_bad_config(label + " missing.");
+	else if (label_pos == string::npos && optional == true)
+		return ("");
+
+	size_t end_line_pos = server_config.find(";", label_pos);
+	if (end_line_pos == string::npos)
+		error_bad_config("Missing ; at end of line.");
+
+	string line = server_config.substr(label_pos, end_line_pos - label_pos);
+	
+	// Check si doublon
+	if (server_config.find(label, end_line_pos + 1) != string::npos)
+		error_bad_config("Double " + label + ".");
+	return (line);
+}
+
+void	Location::set_root(const string location_config)
+{
+	string root_line = get_configuration(location_config, "root", true);
+	if (root_line != "")
+	{
+		size_t split_pos = root_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (root)");
+		this->_root = root_line.substr(split_pos + 1);
+	}
+}
+
+void	Location::set_indexes(const string location_config)
+{
+	string index_line = get_configuration(location_config, " index ", true);
+	if (index_line != "")
+	{
+		size_t split_pos = 0;
+		while ((split_pos = index_line.find(' ', split_pos + 1)) != string::npos)
+		{
+			if (index_line.find(' ', split_pos + 1) == string::npos)
+				this->_index.push_back(index_line.substr(split_pos + 1));
+			else
+				this->_index.push_back(index_line.substr(split_pos + 1, index_line.find(' ', split_pos + 1) - split_pos - 1));
+		}
+		if (this->_index.empty() == true)
+			error_bad_config("Invalid instruction. (index)");
+	}
+}
+
+void	Location::set_methods(const string location_config)
+{
+	string methods_line = get_configuration(location_config, "methods", true);
+	this->_allowed_methods["GET"] = false;
+	this->_allowed_methods["POST"] = false;
+	this->_allowed_methods["DELETE"] = false;
+	if (methods_line != "")
+	{
+		size_t split_pos = 0;
+		while ((split_pos = methods_line.find(' ', split_pos + 1)) != string::npos)
+		{
+			string method;
+			if (methods_line.find(' ', split_pos + 1) == string::npos)
+				method = methods_line.substr(split_pos + 1);
+			else
+				method = methods_line.substr(split_pos + 1, methods_line.find(' ', split_pos + 1) - split_pos - 1);
+			if (method == "GET")
+				this->_allowed_methods["GET"] = true;
+			else if (method == "POST")
+				this->_allowed_methods["POST"] = true;
+			else if (method == "DELETE")
+				this->_allowed_methods["DELETE"] = true;
+			else
+				error_bad_config("Bad method");
+		}
+	}
+	else
+	{
+		this->_allowed_methods["GET"] = true;
+		this->_allowed_methods["POST"] = true;
+		this->_allowed_methods["DELETE"] = true;
+	}
+}
+
+void	Location::set_autoindex(const string location_config)
+{
+	string auto_index_line = get_configuration(location_config, "autoindex", true);
+	if (auto_index_line != "")
+	{
+		size_t split_pos = auto_index_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (autoindex)");
+		string boolean = auto_index_line.substr(split_pos + 1);
+		if (boolean == "on")
+			this->_auto_index = true;
+		else
+			this->_auto_index = false;
+	}
+	else
+		this->_auto_index = false;
+}
+
+void	Location::set_redirection(const string location_config)
+{
+	string redirect_line = get_configuration(location_config, "redirect", true);
+	if (redirect_line != "")
+	{
+		size_t split_pos = redirect_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (redirect)");
+		size_t second_split_pos = redirect_line.find(' ', split_pos + 1);
+		if (second_split_pos == string::npos)
+			error_bad_config("Invalid instruction. (redirect)");
+		this->_redirect.first = redirect_line.substr(split_pos + 1, second_split_pos - split_pos - 1);
+		this->_redirect.second = redirect_line.substr(second_split_pos + 1);
+	}
+}
+
+void	Location::set_cgi_path(const string location_config)
+{
+	string cgi_line = get_configuration(location_config, "cgi_path", true);
+	if (cgi_line != "")
+	{
+		size_t split_pos = cgi_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (cgi_path)");
+		this->_cgi_path = cgi_line.substr(split_pos + 1);
+	}
+}
+
+
+
+
+
 // ************ << OPERATOR **************** //
 
 std::ostream &			operator<<( std::ostream & o, Location const & i )
@@ -189,13 +206,13 @@ std::ostream &			operator<<( std::ostream & o, Location const & i )
 	o << "    Id:\t" << i.get_id() << std::endl;
 	if (i.get_root() != "")
 		o << "    Root:\t" << i.get_root() << std::endl;
-	std::vector<string> loc_index = i.get_index();
-	if (loc_index.empty() == false)
+	std::vector<string> indexes = i.get_index();
+	if (indexes.empty() == false)
 	{
 		o << "    Index:\t";
-		for (std::vector<string>::iterator it_index = loc_index.begin(); it_index != loc_index.end(); ++it_index)
+		for (std::vector<string>::iterator it = indexes.begin(); it != indexes.end(); ++it)
 		{
-			o << *it_index << " ";
+			o << *it << " ";
 		}
 		o << std::endl;
 	}

@@ -1,9 +1,9 @@
 #include "../webserv.hpp"
 #include <sstream>
 
-void	error_bad_config()
+void	error_bad_config(string error)
 {
-	std::cerr << "Error: Bad configuration file.\n";
+	std::cerr << "Error: Bad configuration file.\n\t-> " << error << std::endl;
 	exit (1);
 }
 
@@ -66,8 +66,9 @@ bool	valid_count_brackets(string s) {
 
 bool is_double_space(char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); }
 
-void	parsing_config(const char *config_path)
+std::vector<Server>		parsing_config(const char *config_path)
 {
+	// Opening file
 	std::ifstream config_file;
     config_file.open(config_path);
 	if (config_file.fail())
@@ -76,6 +77,7 @@ void	parsing_config(const char *config_path)
 		exit (1);
 	}
 
+	// Reading file
     std::stringstream config_read;
     config_read << config_file.rdbuf();
     std::string config = config_read.str();
@@ -98,21 +100,26 @@ void	parsing_config(const char *config_path)
 	std::string::iterator new_end = std::unique(config.begin(), config.end(), is_double_space);
 	config.erase(new_end, config.end());
 
+	// Checking validity by number of brackets
 	if (!valid_count_brackets(config))
-		error_bad_config();
+		error_bad_config("Invalid number of brackets.");
 
+	std::vector<Server> servers;
 	std::vector<size_t> block = find_block(config, 0);
-	if (block.empty())
-		error_bad_config();
-	string type = get_block_type(config, 7);
-	std::cout << std::endl << type << " at " << block[0] << " " << block[1] << std::endl;
+	int id_server = 0;
+	while (block.empty() == false)
+	{
+		if (get_block_type(config, block[0]) != "server")
+			error_bad_config("Not a server.");
+		size_t start_block = config.find("server", 0) + 7;
+		Server new_server(config.substr(start_block + 2, block[1] - start_block - 2), id_server);
+		servers.push_back(new_server);
+		config.erase(start_block - 6, block[1] - start_block + 7);
+		block = find_block(config, 0);
+		id_server++;
+	}
 
-	string block_config = config.substr(block[0] + 2, block[1] - block[0] - 2);
-	// std::cout << block_config << std::endl;
-	Server server1(block_config, 0);
-	std::cout << server1;
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+		std::cout << *it;
+	return (servers);
 }
-
-// last block 472 - 507
-// location / 290 365
-

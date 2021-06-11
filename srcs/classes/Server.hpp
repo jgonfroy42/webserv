@@ -16,6 +16,7 @@ class Server
 		Server(string server_config, int id);
 		~Server();
 
+		int			get_id() const;
 		int			get_port() const;
 		string		get_host() const;
 		vec_string	get_server_names() const;
@@ -40,6 +41,10 @@ class Server
 		void	set_host_port(const string server_config);
 		void	set_server_names(const string server_config);
 		void	set_error_pages(const string server_config);
+		void	set_locations(string *server_config);
+		void	set_root(const string server_config);
+		void	set_indexes(const string server_config);
+		void	set_body_max_size(const string server_config);
 
 		string	get_configuration(const string server_config, const string label, bool optional);
 
