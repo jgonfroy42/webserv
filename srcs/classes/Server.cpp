@@ -60,13 +60,14 @@ string Server::get_error_page(string error_code) const
 
 Location	Server::server_contains_location(string path) const
 {
+	Location loc;
 	std::vector<Location> locations = this->get_locations();
 	for (std::vector<Location>::iterator it = locations.begin() ; it != locations.end(); ++it)
 	{
-		if (path.find(it->get_path(), 0) == 0)
-			return (*it);
+		if (path.find(it->get_path(), 0) == 0 && it->get_path().size() > loc.get_path().size())
+			loc = *it;
 	}
-	return (Location());
+	return (loc);
 }
 
 

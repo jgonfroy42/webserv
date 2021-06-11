@@ -25,6 +25,7 @@ class Location
 		pair		get_redirect() const;
 		string		get_cgi_path() const;
 		bool		empty() const;
+		bool		is_cgi() const;
 
 	private:
 		int				_id;

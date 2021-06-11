@@ -66,6 +66,12 @@ bool		Location::empty() const
 	return (false);
 }
 
+bool		Location::is_cgi() const
+{
+	if (this->_cgi_path == "")
+		return (false);
+	return (true);
+}
 
 
 // ******************** SETTERS / PARSER ****************** //
@@ -199,6 +205,8 @@ void	Location::set_cgi_path(const string location_config)
 			error_bad_config("Invalid instruction. (cgi_path)");
 		this->_cgi_path = cgi_line.substr(split_pos + 1);
 	}
+	else
+		this->_cgi_path = "";
 }
 
 
