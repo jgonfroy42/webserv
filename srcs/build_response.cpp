@@ -57,7 +57,7 @@ string get_last_modified(const char *path)
 	strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", mtime);
 
 	/* 	Quizas gerer ca (via strptime ?):
-   An origin server with a clock MUST NOT send a Last-Modified date that
+	 An origin server with a clock MUST NOT send a Last-Modified date that
    is later than the server's time of message origination (Date).  If
    the last modification time is derived from implementation-specific
    metadata that evaluates to some time in the future, according to the
@@ -150,11 +150,137 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 	return 0;
 }
 
+std::vector<string> convert_CGI_string_to_vector(string CGI_string)
+{
+	std::vector<string> pairs;
+
+	char *to_split = (char *)CGI_string.c_str();
+	char *ret;
+	ret = strtok(to_split, "&");
+	while (ret != NULL)
+	{
+		pairs.push_back(string(ret));
+		ret = strtok(NULL, "&");
+	}
+	return pairs;
+}
+
+char *clean_CGI_env_token(string token) //a voir si on fait plus propre ou osef= a voir si on fouille un peu dans la syntaxe des bodys envoyes par POST ou pas
+{
+	char *shiny_token;
+
+	if ((shiny_token = (char *)malloc(sizeof(char) * (token.size() + 1))) == NULL)
+	{
+		std::cerr << "Failed allocating memory for a brand new shiny CGI token\n";
+		return NULL;
+	}
+	shiny_token[token.size()] = '\0';
+	strcpy(shiny_token, token.c_str());
+	for (size_t i = 0; i < strlen(shiny_token); i++)
+	{
+		if (shiny_token[i] == '+')
+			shiny_token[i] = ' ';
+	}
+	return shiny_token;
+}
+
+char **convert_CGI_vector_to_CGI_env(std::vector<string> CGI_vector)
+{
+	char **CGI_env = NULL;
+
+	if ((CGI_env = (char **)malloc(sizeof(char *) * (CGI_vector.size() + 1))) == NULL)
+	{
+		std::cerr << "Failed allocating memory for CGI env\n";
+		return NULL;
+	}
+	CGI_env[CGI_vector.size()] = NULL;
+	for (size_t i = 0; i < CGI_vector.size(); i++)
+	{
+		CGI_env[i] = clean_CGI_env_token(CGI_vector[i]); //achtung malloc
+		std::cout << "shinytoken=" << CGI_env[i]<<"%\n";
+	}
+	return CGI_env;
+}
+
+void free_CGI_env(char **CGI_env)
+{
+	size_t i = 0;
+	while (CGI_env && CGI_env[i])
+	{
+		free(CGI_env[i]);
+		CGI_env[i] = NULL;
+		i++;
+	}
+	if (CGI_env)
+		free(CGI_env);
+	CGI_env = NULL;
+}
+
+string	process_post_CGI()
+{
+	return string();
+}
+
 int response_to_POST(Request &request, char **response, size_t &response_size)
 {
-	(void)request;
-	(void)response;
-	(void)response_size;
+	string request_body = request.get_body();
+	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
+	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
+
+	//rajouter if on est bien dans un cgi
+
+//	usleep(500); //sinon ca imprime mal
+	int link[2];
+	char cgi_response[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC /probablement client body size
+	pipe(link);
+	if (fork() == 0)
+	{
+//		usleep(500); //sinon ca imprime mal
+		dup2(link[1], STDOUT_FILENO);
+		close(link[0]);
+		close(link[1]);
+		char **input = (char **)malloc(sizeof(char *) * 3);
+
+		input[0] = strdup("/usr/bin/php-cgi");
+		input[1] = strdup("./post.php");
+		input[2] = NULL;
+		execve("/usr/bin/php-cgi", input, CGI_env);
+		free(input[0]);
+		free(input[1]);
+		free(input);
+		free_CGI_env(CGI_env);
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+	//	usleep(500); //sinon ca imprime mal
+		close(link[1]);
+		size_t ret = read(link[0], cgi_response, sizeof(cgi_response));
+		(void)ret;
+	//	std::fstream stream;
+	//	stream.open("./tmpfd", stream.out| stream.binary | stream.trunc);
+	//	stream.write(cgi_response, ret);
+		string cgi_str(cgi_response);
+		string headers("HTTP/1.1 ");
+		add_status_line(headers, CREATED);//a verifier
+		char separator[5] = {13, 10, 13, 10, 0};
+		size_t pos = cgi_str.find(separator) + 4;
+		string body = string(cgi_str, pos);
+		char *size_itoa = ft_itoa(body.size());
+		add_header(headers, "Content-Length: ", string(size_itoa));
+		free(size_itoa);
+
+		size_t begin = cgi_str.find("Content-type: ") + 14;
+		size_t end = string(cgi_str, begin).find('\n' | ';');
+		if (end != string::npos && begin != string::npos)
+		{
+			add_header(headers, "Content-Type: ", string(cgi_str, begin, end));
+		}
+		headers += '\n';
+		response_size = headers.size() + body.size();
+		*response = headers_body_join(headers, (char*)body.c_str(), response_size);
+	}
+
 	return 0;
 }
 
@@ -163,7 +289,7 @@ int build_response(Request &request, char **response)
 	size_t response_size = 0;
 	if (request.is_method_valid())
 	{
-		//405 if method know but not allowed for the target
+		//405 if method known but not allowed for the target
 		if (request.get_method() == "GET" || request.get_method() == "HEAD")
 		{
 			response_to_GET_or_HEAD(request, response, response_size);

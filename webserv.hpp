@@ -21,7 +21,8 @@
 # include <fcntl.h>
 # include <sys/stat.h>
 # include <errno.h>
-#include <fstream>
+# include <fstream>
+# include <vector>
 
 # define PORT 8080
 # define PENDING_MAX 10
