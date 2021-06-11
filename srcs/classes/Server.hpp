@@ -1,6 +1,8 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include "Location.hpp"
+
 # include <iostream>
 # include <string>
 # include <sys/types.h>

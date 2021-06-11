@@ -1,7 +1,7 @@
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
-#include "../../webserv.hpp"
+#include "../../includes/webserv.hpp"
 
 #include <utility>
 typedef std::pair<string, string> pair;

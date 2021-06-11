@@ -1,6 +1,7 @@
 #include "./../includes/webserv.hpp"
+#include "classes/Server.hpp"
 
-int	main(void)
+int	main(int argc, char** argv)
 {
 	t_param_server *param = new t_param_server;
 	std::vector<Server> servers;
@@ -10,7 +11,7 @@ int	main(void)
 		servers = parsing_config(argv[1]);
 	else
 		servers = parsing_config(default_config_path);
-  
+
 	//a changer avec la conf
 	param->timeout.tv_sec = 3600;
 	param->timeout.tv_usec = 0;
