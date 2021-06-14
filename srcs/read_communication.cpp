@@ -54,18 +54,17 @@ int init_server(t_param_server *param)
 
 void launch_server(t_param_server *param)
 {
-	fd_set entries;
-	int nb_readable, max_sd;
-	int	new_co = 0;
+	int nb_readable, new_co;
+	int nfds = 1;
+	struct pollfd *fds = NULL;
 
-	FD_ZERO(&param->socket);
-	max_sd = param->socketId;
-	FD_SET(param->socketId, &param->socket);
+	fds = (struct pollfd *)calloc(nfds, sizeof(*fds));
+	fds[0].fd = param->socketId;
+	fds[0].events = POLLIN;
 	while (1)
 	{
-		memcpy(&entries, &param->socket, sizeof(param->socket));
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = select(max_sd + 1, &entries, NULL, NULL, &param->timeout)) < 0)
+		if ((nb_readable = poll(fds, nfds , 36000)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return ;
@@ -75,66 +74,75 @@ void launch_server(t_param_server *param)
 			std::cout << "Time out" << std::endl;
 			return ;
 		}
-		for (int i = 0; i <= max_sd && nb_readable; ++i)
+		for (int i = 0; i < nfds; ++i)
 		{
-			//check un a un si les descripteurs qui sont lisibles
-			if (FD_ISSET(i, &entries))
+			//il ne se passe rien pour ce descripteur
+			if (fds[i].revents == 0)
+				continue;
+			if (fds[i].revents != POLLIN)
 			{
-				nb_readable--;
-				//si le serveur est lisible ca veut dire qu'il a des connections entrantes a accepter
-				if (i == param->socketId)
+				std::cout << "Error";
+				return ;
+			}
+			//si le server est lisible, ca veut dire qu'on peut accepter les connexions entrantes
+			if (fds[i].fd == param->socketId)
+			{
+				do
 				{
-					do
+					new_co = accept(param->socketId, NULL, NULL);
+					if (new_co < 0)
 					{
-						new_co = accept(param->socketId, NULL, NULL);
-						if (new_co < 0)
+						if (errno != EWOULDBLOCK)
 						{
-							if (errno != EAGAIN)
-								std::cerr << "Error: cannot accept new connection" << std::endl;
-							break;
+							std::cerr << "Error: accept failed" << std::endl;
+							return ;
 						}
-						FD_SET(new_co, &param->socket);
-						if (new_co > max_sd)
-							max_sd = new_co;
-					} while (new_co != -1);
-				}
-				//sinon, ca veut dire qu'on peut faire un read sur les connections
-				else
-					if (get_data(i, param->socketAddr))
-					{
-						//si le read renvoie 0, la connection est fini donc on la close ici
-						close(i);
-						FD_CLR(i, &param->socket);
-						if (i == max_sd)
-							while (FD_ISSET(max_sd, &param->socket) == false)
-								max_sd--;
+						break;
 					}
+					fds[nfds].fd = new_co;
+					fds[nfds].events = POLLIN;
+					nfds++;
+				} while (new_co != -1);
+			}
+			else
+			{
+				if (get_data(fds[i].fd, param->socketAddr))
+				{
+				//si le read renvoie 0, la connection est fini donc on la close ici
+					close(fds[i].fd);
+					for (int j = i; j < nfds - 1; ++j)
+						fds[j].fd = fds[j+1].fd;
+					nfds--;
+				}
 			}
 		}
 	}
 }
 
-int	get_data(int i, struct sockaddr_in6 addr)
+int	get_data(int fd, struct sockaddr_in6 addr)
 {
 	int	data_len;
 	char	buffer[BUFFER_SIZE];
 
-		data_len = recv(i, buffer, sizeof(buffer), 0);
-		if (data_len < 0)
-			return 0;
-		if (data_len == 0)
-		{
-			std::cout << "Connection closed" << std::endl;
-			return 1;
-		}
+	(void)addr;
+	data_len = recv(fd, buffer, sizeof(buffer), 0);
+	std::cout << "data len : " << data_len << std::endl;
+	if (data_len < 0)
+		return 0;
+	if (data_len == 0)
+	{
+		std::cout << "Connection closed" << std::endl;
+		return 1;
+	}
 
-		//parsing request
-		std::string requestStr(buffer);
-		Request request(requestStr, &addr);
-		std::cout << request;
+	//parsing request
+	std::string requestStr(buffer);
+//	Request request(requestStr, &addr);
+//	std::cout << request;
+	std::cout << buffer << std::endl;
 
-		//send response
-		std::string response = "Server response\n";
-		send(i, response.c_str(), response.size(), 0);
+	//send response
+	std::string response = "Server response\n";
+	send(fd, response.c_str(), response.size(), 0);
 	return 0;
 }

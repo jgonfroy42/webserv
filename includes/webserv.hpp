@@ -31,8 +31,9 @@
 # include <fcntl.h>
 # include <sys/stat.h>
 # include <errno.h>
-#include <fstream>
-#include <vector>
+# include <fstream>
+# include <vector>
+# include <poll.h>
 # include "../srcs/classes/Server.hpp"
 # include "../srcs/classes/Location.hpp"
 #include "../srcs/classes/request.hpp"
