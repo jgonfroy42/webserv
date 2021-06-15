@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "../includes/webserv.hpp"
 
 int init_server(sockaddr_in *sock_addr)
@@ -26,10 +27,30 @@ int init_server(sockaddr_in *sock_addr)
 		return (-1);
 	}
 	if (listen(sock_fd, PENDING_MAX) < 0)
+=======
+#include "./../includes/webserv.hpp"
+
+int	main(int argc, char** argv)
+{
+	t_param_server *param = new t_param_server;
+	std::vector<Server> servers;
+
+	const char *default_config_path = "config/default.conf";
+	if (argc == 2)
+		servers = parsing_config(argv[1]);
+	else
+		servers = parsing_config(default_config_path);
+
+	//a changer avec la conf
+	param->timeout.tv_sec = 3600;
+	param->timeout.tv_usec = 0;
+	if (init_server(param))
+>>>>>>> master
 	{
-		std::cerr << "Cannot listen socket" << std::endl;
-		return (-1);
+		delete param;
+		return -1;
 	}
+<<<<<<< HEAD
 	return (sock_fd);
 }
 
@@ -85,4 +106,8 @@ int main(void)
 	free(sock_addr);
 	close(server_fd);
 	return (0);
+=======
+	launch_server(param);
+	delete param;
+>>>>>>> master
 }

@@ -8,8 +8,8 @@ DIR_SRCS	= srcs/
 DIR_OBJS	= objs/
 DIR_INC		= ./includes/
 
-F_SRCS		= main.cpp classes/request.cpp debug.cpp  \
-				status_codes.cpp build_response.cpp 
+F_SRCS		= main.cpp parsing_request.cpp classes/request.cpp debug.cpp read_communication.cpp parsing_config.cpp classes/Location.cpp classes/Server.cpp 
+
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 
 OBJS		= $(addprefix $(DIR_OBJS), $(F_SRCS:.cpp=.o))
@@ -23,7 +23,7 @@ $(DIR_OBJS)%.o: $(DIR_SRCS)%.cpp
 			$(CC) $(CFLAGS) $(HEADER) -c $< -o $@
 
 $(NAME):	$(DIR_OBJS) $(OBJS)
-			${CC} $(CFLAGS) $(OBJS) -o $(NAME) 
+			${CC} $(CFLAGS) $(OBJS) -o $(NAME)
 
 $(DIR_OBJS):
 		mkdir $(DIR_OBJS)
