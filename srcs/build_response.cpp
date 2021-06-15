@@ -98,58 +98,6 @@ char *headers_body_join(string headers, char *body, size_t size)
 	return dst;
 }
 
-int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_size)
-{
-	string headers("HTTP/1.1 ");
-	off_t file_size;
-	if (request.is_CGI()) //En attente nouveau sujet ?
-	{
-		std::cerr << "cgi_request\n";
-		return -1;
-	}
-	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
-	{
-		//opening file
-		std::ifstream stream;
-		stream.open(request.get_path().c_str(), std::ifstream::binary);
-
-		//status line
-		add_status_line(headers, OK); //200
-
-		//headers
-		char *size_itoa = (char*)NumberToString(file_size).c_str();
-		if (request.get_headers()["Transfer-Encoding"] != string())
-			add_header(headers, "Content-Length: ", string(size_itoa));
-		add_header(headers, "Date: ", get_current_date());
-		add_header(headers, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
-		add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
-		if (request.get_method() == "GET")				// Ajout du body
-		{
-			headers += "\n";
-			char *buffer = new char[file_size];
-			std::ifstream stream;
-			stream.open(request.get_path().c_str(), std::ifstream::binary);
-			stream.read(buffer, sizeof(char) * file_size);
-			response_size = file_size + headers.size();
-			*response = headers_body_join(headers, buffer, response_size);
-			delete[] buffer;
-		}
-		else //Method == HEAD
-		{
-			response_size = headers.size();
-			*response = headers_body_join(headers, NULL, response_size);
-		}
-		stream.close();
-	}
-	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
-	{
-		add_status_line(headers, NOT_FOUND);
-		response_size = headers.size();
-		*response = headers_body_join(headers, NULL, response_size);
-	}
-	return 0;
-}
-
 std::vector<string> convert_CGI_string_to_vector(string CGI_string)
 {
 	std::vector<string> pairs;
@@ -195,10 +143,7 @@ char **convert_CGI_vector_to_CGI_env(std::vector<string> CGI_vector)
 	}
 	CGI_env[CGI_vector.size()] = NULL;
 	for (size_t i = 0; i < CGI_vector.size(); i++)
-	{
 		CGI_env[i] = clean_CGI_env_token(CGI_vector[i]); //achtung malloc
-		std::cout << "shinytoken=" << CGI_env[i] << "%\n";
-	}
 	return CGI_env;
 }
 
@@ -229,20 +174,18 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 
 	//rajouter if on est bien dans un cgi
 
-	//	usleep(500); //sinon ca imprime mal
 	int link[2];
 	char cgi_response[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC /probablement client body size
 	pipe(link);
 	if (fork() == 0)
 	{
-		//		usleep(500); //sinon ca imprime mal
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
 		char **input = (char **)malloc(sizeof(char *) * 3);
 
 		input[0] = strdup("/usr/bin/php-cgi");
-		input[1] = strdup("./cgi/srcs/post.php");//a modifier
+		input[1] = strdup("./srcs/cgi/post.php"); //a modifier
 		input[2] = NULL;
 		execve("/usr/bin/php-cgi", input, CGI_env);
 		free(input[0]);
@@ -253,33 +196,80 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 	}
 	else
 	{
-		//	usleep(500); //sinon ca imprime mal
 		close(link[1]);
-		size_t ret = read(link[0], cgi_response, sizeof(cgi_response));
-		(void)ret;
-		//	std::fstream stream;
-		//	stream.open("./tmpfd", stream.out| stream.binary | stream.trunc);
-		//	stream.write(cgi_response, ret);
+		read(link[0], cgi_response, sizeof(cgi_response));
 		string cgi_str(cgi_response);
 		string headers("HTTP/1.1 ");
 		add_status_line(headers, CREATED); //a verifier
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
-		char *size_itoa = (char*)NumberToString(body.size()).c_str();
+		char *size_itoa = (char *)NumberToString(body.size()).c_str();
 		add_header(headers, "Content-Length: ", string(size_itoa));
 
-		size_t begin = cgi_str.find("Content-type: ") + 14;
-		size_t end = string(cgi_str, begin).find('\n' | ';');
+		size_t begin = cgi_str.find("Content-type: ");
+		size_t end = string(cgi_str, begin + 14).find('\n' | ';');
 		if (end != string::npos && begin != string::npos)
-		{
-			add_header(headers, "Content-Type: ", string(cgi_str, begin, end));
-		}
+			add_header(headers, "Content-Type: ", string(cgi_str, begin + 14, end));
 		headers += '\n';
 		response_size = headers.size() + body.size();
 		*response = headers_body_join(headers, (char *)body.c_str(), response_size);
 	}
 
+	return 0;
+}
+
+int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_size)
+{
+	string headers("HTTP/1.1 ");
+	off_t file_size;
+	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
+	{
+		std::cerr << "getting GET cgi_request\n";
+		Request newRequest = Request(request, request.get_query_string());
+		std::cout << newRequest << std::endl;
+		return response_to_POST(newRequest, response, response_size);
+	}
+	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
+	{
+		//opening file
+		std::ifstream stream;
+		stream.open(request.get_path().c_str(), std::ifstream::binary);
+
+		//status line
+		add_status_line(headers, OK); //200
+
+		//headers
+		char *size_itoa = (char *)NumberToString(file_size).c_str();
+		if (request.get_headers()["Transfer-Encoding"] != string())
+			add_header(headers, "Content-Length: ", string(size_itoa));
+		add_header(headers, "Date: ", get_current_date());
+		add_header(headers, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
+		add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
+		if (request.get_method() == "GET")				// Ajout du body
+		{
+			headers += "\n";
+			char *buffer = new char[file_size];
+			std::ifstream stream;
+			stream.open(request.get_path().c_str(), std::ifstream::binary);
+			stream.read(buffer, sizeof(char) * file_size);
+			response_size = file_size + headers.size();
+			*response = headers_body_join(headers, buffer, response_size);
+			delete[] buffer;
+		}
+		else //Method == HEAD
+		{
+			response_size = headers.size();
+			*response = headers_body_join(headers, NULL, response_size);
+		}
+		stream.close();
+	}
+	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
+	{
+		add_status_line(headers, NOT_FOUND);
+		response_size = headers.size();
+		*response = headers_body_join(headers, NULL, response_size);
+	}
 	return 0;
 }
 
@@ -305,6 +295,7 @@ int build_response(Request &request, char **response)
 	{
 		string headers("HTTP/1.1 ");
 		add_status_line(headers, NOT_IMPLEMENTED); //=501 //cf 4.1
+		response_size = headers.size();
 	}
 	return response_size;
 }

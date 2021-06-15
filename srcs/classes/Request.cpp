@@ -29,6 +29,14 @@ Request::Request(const Request &src)
 	std::cout << "end of copy constructor" << std::endl;
 }
 
+Request::Request(Request const &src, string body)
+{
+	std::cout << "copy constructor with new body" << std::endl;
+	_method = src._method;
+	_headers = src._headers;
+	_body = body;
+}
+
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
@@ -67,7 +75,7 @@ std::ostream &operator<<(std::ostream &o, Request const &i)
 	o << std::endl
 	  << "Body:" << std::endl
 	  << i.get_body() << std::endl;
-	o << std::endl;
+	o << "---end of request class--" << std::endl;
 
 	return o;
 }
@@ -76,21 +84,21 @@ std::ostream &operator<<(std::ostream &o, Request const &i)
 ** --------------------------------- METHODS ----------------------------------
 */
 
-int		get_header_value(map_str_str &headers, string request, string header)
+int get_header_value(map_str_str &headers, string request, string header)
 {
 	size_t pos = 0;
 	int len = 0;
 	if ((pos = request.find(header + ": ")) != string::npos)
 	{
 		pos += header.size() + 2;
-		while(request[pos + len] && request[pos + len] != '\n')
+		while (request[pos + len] && request[pos + len] != '\n')
 			len++;
 		headers[header] = string(request, pos, len);
 	}
-	return 0;//choix éditorial a confirmer
+	return 0; //choix éditorial a confirmer
 }
 
-void	init_headers(map_str_str &headers)
+void init_headers(map_str_str &headers)
 {
 	headers["Accept-Charset"] = string();
 	headers["Accept-Language"] = string();
@@ -100,13 +108,13 @@ void	init_headers(map_str_str &headers)
 	headers["Date"] = string();
 	headers["Host"] = string();
 	headers["Referer"] = string();
-	headers["Transfer-Encoding"] = string();//also called TE
+	headers["Transfer-Encoding"] = string(); //also called TE
 	headers["User-Agent"] = string();
 }
 
-map_str_str		Request::parse_headers(const string request_str)
+map_str_str Request::parse_headers(const string request_str)
 {
-	map_str_str	headers;
+	map_str_str headers;
 
 	init_headers(headers);
 	get_header_value(headers, request_str, "Accept-Charset");
@@ -128,12 +136,19 @@ string Request::parse_body(const char *request)
 	//char *tmp;
 	string requestStr = string(request);
 	size_t pos;
-	char separator[5] = {13, 10, 13, 10, 0};//sequence of non printable chars that separate the headers of the body in a client request(chrome) + \0
-	
-	if ((pos = requestStr.find(separator)) == string::npos)
-		return string();
+	char separator[5] = {13, 10, 13, 10, 0}; //sequence of non printable chars that separate the headers of the body in a client request(chrome) + \0
+	pos = requestStr.find(separator) + 4;
+
+	if (pos == requestStr.size()) //no body
+	{
+		std::cout << "NO body in the request\n";
+		return (string());
+	}
 	else
-		return string(requestStr, pos + 4);
+	{
+		std::cout << "a body was found in the request\n";
+		return (string(requestStr, pos + 4));
+	}
 }
 
 int Request::parse_start_line(string start_line)
@@ -146,14 +161,14 @@ int Request::parse_start_line(string start_line)
 		it_end++;
 	_URI = string(it_begin, it_end++);
 	size_t pos;
-	int len = 0;
+	size_t len = 0;
 	if ((pos = _URI.find('?')) != string::npos)
 	{
 		_path = string(_URI, 1, pos - 1);
 		pos += 1;
 		while (start_line[pos + len] && start_line[pos + len] != ' ')
-			len++;
-		_query_string = string(start_line, pos, len);		
+			len++;	
+		_query_string = string(_URI, pos, len);
 	}
 	else
 	{
@@ -165,9 +180,9 @@ int Request::parse_start_line(string start_line)
 		it_end++;
 	_protocol = string(it_begin, it_end);
 	if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
-	{//NB: CGI PATH EN STATIQUE
+	{ //NB: CGI PATH EN STATIQUE
 		len = 0;
-		pos += string("cgi-bin/myscript.cgi").size() + 1;//NB: CGI PATH EN STATIQUE
+		pos += string("cgi-bin/myscript.cgi").size() + 1; //NB: CGI PATH EN STATIQUE
 		while (start_line[pos + len] && start_line[pos + len] != ' ' && start_line[pos + len] != '?')
 			len++;
 		_path = string(start_line, pos, len);

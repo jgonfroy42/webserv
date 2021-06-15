@@ -24,7 +24,7 @@
 # include <cstring>
 # include "../srcs/classes/Server.hpp"
 # include "../srcs/classes/Location.hpp"
-# include "../srcs/classes/request.hpp"
+# include "../srcs/classes/Request.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10

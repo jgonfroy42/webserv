@@ -12,13 +12,11 @@ public:
 	Request();
 	Request(const char *request_str);
 	Request(Request const &src);
+	Request(Request const &src, string body);
 	~Request();
 
 	bool is_method_valid() const;
 	bool is_CGI() const;
-	int parse_start_line(string start_line);
-	map_str_str parse_headers(const string request_str);
-	string parse_body(const char *request_str);
 
 	//GETTERS:
 	string get_method() const;
@@ -39,6 +37,9 @@ private:
 	string _query_string;
 	string _protocol; //=SERVER PROTOCOL pour CGI
 	map_str_str _headers;
+	int parse_start_line(string start_line);
+	map_str_str parse_headers(const string request_str);
+	string parse_body(const char *request_str);
 };
 
 std::ostream &operator<<(std::ostream &o, Request const &i);
