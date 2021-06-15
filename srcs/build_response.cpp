@@ -1,13 +1,14 @@
-#include "../webserv.hpp"
-#include "../libft/ft_bzero.c"	 //SALE
-#include "../libft/ft_calloc.c"	 //SALE
-#include "../libft/ft_itoa.c"	 //SALE
-#include "../libft/ft_strjoin.c" //SALE
-#include "../libft/ft_strlcpy.c" //SALE
-#include "../libft/ft_strlcat.c" //SALE
-#include "../libft/ft_strlen.c"	 //SALE
+#include "../includes/webserv.hpp"
 
 // source : https://www.tutorialspoint.com/http/http_responses.htm
+
+template <typename T>
+string NumberToString(T Number)
+{
+	std::ostringstream ss;
+	ss << Number;
+	return ss.str();
+}
 
 void add_status_line(string &response, string code)
 {
@@ -116,7 +117,7 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 		add_status_line(headers, OK); //200
 
 		//headers
-		char *size_itoa = ft_itoa(file_size); //malloc --'
+		char *size_itoa = (char*)NumberToString(file_size).c_str();
 		if (request.get_headers()["Transfer-Encoding"] != string())
 			add_header(headers, "Content-Length: ", string(size_itoa));
 		add_header(headers, "Date: ", get_current_date());
@@ -139,7 +140,6 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 			*response = headers_body_join(headers, NULL, response_size);
 		}
 		stream.close();
-		free(size_itoa);
 	}
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
 	{
@@ -197,7 +197,7 @@ char **convert_CGI_vector_to_CGI_env(std::vector<string> CGI_vector)
 	for (size_t i = 0; i < CGI_vector.size(); i++)
 	{
 		CGI_env[i] = clean_CGI_env_token(CGI_vector[i]); //achtung malloc
-		std::cout << "shinytoken=" << CGI_env[i]<<"%\n";
+		std::cout << "shinytoken=" << CGI_env[i] << "%\n";
 	}
 	return CGI_env;
 }
@@ -216,7 +216,7 @@ void free_CGI_env(char **CGI_env)
 	CGI_env = NULL;
 }
 
-string	process_post_CGI()
+string process_post_CGI()
 {
 	return string();
 }
@@ -229,13 +229,13 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 
 	//rajouter if on est bien dans un cgi
 
-//	usleep(500); //sinon ca imprime mal
+	//	usleep(500); //sinon ca imprime mal
 	int link[2];
 	char cgi_response[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC /probablement client body size
 	pipe(link);
 	if (fork() == 0)
 	{
-//		usleep(500); //sinon ca imprime mal
+		//		usleep(500); //sinon ca imprime mal
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
@@ -253,22 +253,21 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 	}
 	else
 	{
-	//	usleep(500); //sinon ca imprime mal
+		//	usleep(500); //sinon ca imprime mal
 		close(link[1]);
 		size_t ret = read(link[0], cgi_response, sizeof(cgi_response));
 		(void)ret;
-	//	std::fstream stream;
-	//	stream.open("./tmpfd", stream.out| stream.binary | stream.trunc);
-	//	stream.write(cgi_response, ret);
+		//	std::fstream stream;
+		//	stream.open("./tmpfd", stream.out| stream.binary | stream.trunc);
+		//	stream.write(cgi_response, ret);
 		string cgi_str(cgi_response);
 		string headers("HTTP/1.1 ");
-		add_status_line(headers, CREATED);//a verifier
+		add_status_line(headers, CREATED); //a verifier
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
-		char *size_itoa = ft_itoa(body.size());
+		char *size_itoa = (char*)NumberToString(body.size()).c_str();
 		add_header(headers, "Content-Length: ", string(size_itoa));
-		free(size_itoa);
 
 		size_t begin = cgi_str.find("Content-type: ") + 14;
 		size_t end = string(cgi_str, begin).find('\n' | ';');
@@ -278,7 +277,7 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 		}
 		headers += '\n';
 		response_size = headers.size() + body.size();
-		*response = headers_body_join(headers, (char*)body.c_str(), response_size);
+		*response = headers_body_join(headers, (char *)body.c_str(), response_size);
 	}
 
 	return 0;

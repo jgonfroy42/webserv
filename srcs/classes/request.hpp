@@ -32,7 +32,6 @@ public:
 	Request &operator=(Request const &rhs);
 
 private:
-	//char *_body;
 	string _body;
 	string _method;
 	string _URI;
@@ -40,8 +39,6 @@ private:
 	string _query_string;
 	string _protocol; //=SERVER PROTOCOL pour CGI
 	map_str_str _headers;
-	//	sockaddr_in	*_client_addr; //useful pour le REMOTE_ADDR?
-	//	socklen_t	_addr_len; //idem: useful?
 };
 
 std::ostream &operator<<(std::ostream &o, Request const &i);
