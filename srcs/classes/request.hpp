@@ -10,7 +10,7 @@ class Request
 {
 public:
 	Request();
-	Request(const char *request_str, const sockaddr_in *client_addr);
+	Request(const char *request_str);
 	Request(Request const &src);
 	~Request();
 

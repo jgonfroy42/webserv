@@ -8,14 +8,13 @@ Request::Request()
 {
 }
 
-Request::Request(const char *request_array, const sockaddr_in *client_addr)
+Request::Request(const char *request_array)
 {
 	_body = parse_body(request_array);
 	string request_string = string(request_array);
 	string start_line = string(request_string, 0, request_string.find('\n'));
 	parse_start_line(request_string);
 	_headers = parse_headers(request_string);
-	(void) client_addr;
 	//	_client_addr = client_addr; //useful pour le REMOTE_ADDR pas sous forme de str car fonction pour l'avoir sous forme de str pas autorisee?
 	//_addr_len; //idem: useful?
 }

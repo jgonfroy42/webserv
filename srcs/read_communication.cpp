@@ -129,17 +129,28 @@ int	get_data(int i, struct sockaddr_in6 addr)
 		}
 
 		//parsing request
+		(void)addr;//a voir si on en aura besoin. Pour linstant void sale
 		std::string requestStr(buffer);
-		Request request(requestStr, &addr);
+		Request request(buffer);
 		std::cout << request;
-
+/* 
 		//send response
 //		std::string response = "Server response\n";
-		std::string response = "HTTP/1.1 301 Moved Permanently\nLocation: http://www.google.com/\nContent-Type: text/html; charset=UTF-8\n \
+//		std::string response = "HTTP/1.1 301 Moved Permanently\nLocation: http://www.google.com/\nContent-Type: text/html; charset=UTF-8\n \
 		Date: Mon, 14 Jun 2021 14:47:11 GMT\nExpires: Wed, 14 Jul 2021 14:47:11 GMT\nCache-Control: public, max-age=2592000\nServer: gws\n \
 		Content-Length: 219\nX-XSS-Protection: 0\nX-Frame-Options: SAMEORIGIN\n\n \
 		HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n \
-		<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\n</BODY></HTML>\n";
-		send(i, response.c_str(), response.size(), 0);
+		<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\n</BODY></HTML>\n"; */
+
+		char	*response;
+		int		response_size;
+		response = NULL;
+		response_size = build_response(request, &response);
+
+		//send response	
+		send(i, response, response_size, 0);
+		std::cout << std::endl << "---RESPONSE SENT TO CLIENT:\n" << response << std::endl;	
+
+		delete response;//new dans build_response	 // a reverifier
 	return 0;
 }
