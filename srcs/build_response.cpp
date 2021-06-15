@@ -242,7 +242,7 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 		char **input = (char **)malloc(sizeof(char *) * 3);
 
 		input[0] = strdup("/usr/bin/php-cgi");
-		input[1] = strdup("./post.php");
+		input[1] = strdup("./cgi/srcs/post.php");//a modifier
 		input[2] = NULL;
 		execve("/usr/bin/php-cgi", input, CGI_env);
 		free(input[0]);
