@@ -140,9 +140,8 @@ int get_data(int i, struct sockaddr_in6 addr)
 
 	//send response
 
-	char *response;
-	int response_size;
-	response = NULL;
+	char *response = NULL;
+	size_t response_size;
 	response_size = build_response(request, &response);
 
 	//send response

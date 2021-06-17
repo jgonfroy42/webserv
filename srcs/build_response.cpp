@@ -10,20 +10,20 @@ string NumberToString(T Number)
 	return ss.str();
 }
 
-void add_status_line(string &response, string code)
+void add_status_line(string &status_line, string code)
 {
 	map_str_str statusMsg = statusCodes();
-	response += code;
-	response += " ";
-	response += statusMsg[code];
-	response += "\n";
+	status_line += code;
+	status_line += " ";
+	status_line += statusMsg[code];
+	status_line += "\n";
 }
 
-void add_header(string &response, string header, string value)
+void add_header(string &headers, string header, string value)
 {
-	response += header;
-	response += value;
-	response += "\n";
+	headers += header;
+	headers += value;
+	headers += "\n";
 }
 
 string get_current_date()
@@ -166,8 +166,9 @@ string process_post_CGI()
 	return string();
 }
 
-int response_to_POST(Request &request, char **response, size_t &response_size)
+size_t response_to_POST(Request &request, char **response)
 {
+	size_t response_size;
 	string request_body = request.get_body();
 	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
 	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
@@ -205,7 +206,7 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
 		char *size_itoa;
-	   	size_itoa =(char *) NumberToString(body.size()).c_str();
+		size_itoa = (char *)NumberToString(body.size()).c_str();
 		add_header(headers, "Content-Length: ", string(size_itoa));
 
 		size_t begin = cgi_str.find("Content-type: ");
@@ -217,11 +218,12 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 		*response = headers_body_join(headers, (char *)body.c_str(), response_size);
 	}
 
-	return 0;
+	return response_size;
 }
 
-int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_size)
+size_t response_to_GET_or_HEAD(Request &request, char **response)
 {
+	size_t response_size;
 	string headers("HTTP/1.1 ");
 	off_t file_size;
 	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
@@ -229,7 +231,7 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 		std::cerr << "getting GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
 		std::cout << newRequest << std::endl;
-		return response_to_POST(newRequest, response, response_size);
+		return response_to_POST(newRequest, response);
 	}
 	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
 	{
@@ -272,34 +274,32 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 		response_size = headers.size();
 		*response = headers_body_join(headers, NULL, response_size);
 	}
-	return 0;
+	return response_size;
 }
 
-int build_response(Request &request, char **response)
+size_t default_response(char **response, string code)
 {
-	size_t response_size = 0;
-	if (request.is_method_valid())
+	string headers("HTTP/1.1 ");
+	add_status_line(headers, code);
+	*response = headers_body_join(headers, NULL, headers.size());
+	return headers.size();
+}
+
+size_t build_response(Request &request, char **response)
+{
+	if (request.is_bad_request())
+		return default_response(response, BAD_REQUEST); //400
+	else if (request.is_method_valid())
 	{
 		//405 if method known but not allowed for the target
 		if (request.get_method() == "GET" || request.get_method() == "HEAD")
-		{
-			response_to_GET_or_HEAD(request, response, response_size);
-		}
+			return response_to_GET_or_HEAD(request, response);
 		else if (request.get_method() == "POST")
-		{
-			response_to_POST(request, response, response_size);
-		}
+			return response_to_POST(request, response);
 		else if (request.get_method() == "DELETE")
-		{
-		}
+			return 42;//a implementer
 	}
-	else
-	{
-		string headers("HTTP/1.1 ");
-		add_status_line(headers, NOT_IMPLEMENTED); //=501 //cf 4.1
-		response_size = headers.size();
-	}
-	return response_size;
+	return default_response(response, NOT_ALLOWED); //405
 }
 
 /* response headers:
