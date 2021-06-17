@@ -1,17 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   webserv.hpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: celeloup <celeloup@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/05/21 14:00:08 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/11 16:29:54 by celeloup         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef WEBSERV_HPP
-#define	WEBSERV_HPP
+# define WEBSERV_HPP
 
 # include <iostream>
 # include <string>
@@ -20,10 +8,9 @@
 # include <netinet/in.h>
 # include <unistd.h>
 # include <stdlib.h>
+# include <sstream>
 # include <stdio.h>
 # include <map>
-# include <sys/socket.h>
-# include <netinet/in.h>
 # include <arpa/inet.h>
 # include <limits.h>
 # include <sys/time.h>
@@ -34,9 +21,15 @@
 # include <fstream>
 # include <vector>
 # include <poll.h>
+
+//Toujours utile ?
+# include <sys/ioctl.h>
+# include <cstring>
+
+
 # include "../srcs/classes/Server.hpp"
 # include "../srcs/classes/Location.hpp"
-#include "../srcs/classes/request.hpp"
+# include "../srcs/classes/Request.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10
@@ -47,14 +40,8 @@
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
 # define NOT_IMPLEMENTED	"501"
-
-
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <iostream>
-#include <cstring>
-#include <errno.h>
-#include <vector>
+# define NO_CONTENT			"204"
+# define CREATED			"200"
 
 typedef struct s_param_server
 {

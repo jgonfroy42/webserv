@@ -11,11 +11,10 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#include "../../libft/ft_bzero.c"//SALE
-#include "../../libft/ft_calloc.c"//SALE
-#include "../../libft/ft_itoa.c"//SALE
-#include "../parsing/get_cgi_env.cpp"//SALE
-
+#include "../../libft/ft_bzero.c"  //SALE
+#include "../../libft/ft_calloc.c" //SALE
+#include "../../libft/ft_itoa.c"   //SALE
+#include "../parsing_request.cpp"  //SALE
 
 // ATTENTION CE N'EST PAS C++98 COMPLIANT, J'AI EU LA FLEMME DE FAIRE UN ITOA LIGNE 100 & 117
 
@@ -23,7 +22,7 @@ int main(int argc, char **argv, char **env)
 {
 	(void)argc;
 	(void)argv;
-	(void)env;	
+	(void)env;
 	// CREATING THE SOCKET
 	int server_fd;
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -64,7 +63,8 @@ int main(int argc, char **argv, char **env)
 	std::string hello = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 12\n\nHello World!";
 	while (1)
 	{
-		std::cout << "----- Waiting for new connection ------" << std::endl << std::endl;
+		std::cout << "----- Waiting for new connection ------" << std::endl
+				  << std::endl;
 		if ((new_socket = accept(server_fd, (struct sockaddr *)&client_addr, &addr_len)) < 0)
 		{
 			std::cerr << "Accept failed" << std::endl;
@@ -73,24 +73,23 @@ int main(int argc, char **argv, char **env)
 		char buffer[3000] = {0};
 		int valread = read(new_socket, buffer, 3000);
 		std::cout << buffer << std::endl;
-		
-		
+
 		// Extraction du fichier dans la requete
 		std::string request(buffer);
 		size_t start = request.find("/");
 		size_t end = request.find(" ", start);
 		std::string file(request, start + 1, end - 1 - start);
-		
+
 		std::cout << file << std::endl;
-		// 	CASE WHERE WE NEED TO USE CGI
+		// CASE WHERE WE NEED TO USE CGI
 		if (file.find(".php") != std::string::npos)
 		{
-			 std::map<std::string, std::string> CGIEnv;
+			std::map<std::string, std::string> CGIEnv;
 			CGIEnv = getCGIEnv(std::string(buffer), client_addr);
 			displayCGIEnv(CGIEnv);
-			usleep(500);//sinon ca imprime mal
+			usleep(500); //sinon ca imprime mal
 			int link[2];
-			char foo[8000];// TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC
+			char foo[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC
 			pipe(link);
 			int fork_ret = fork();
 			if (fork_ret == 0)
@@ -98,16 +97,17 @@ int main(int argc, char **argv, char **env)
 				dup2(link[1], STDOUT_FILENO);
 				close(link[0]);
 				close(link[1]);
-				char **input = (char**)malloc(sizeof(char*) * 3);
-				
+				char **input = (char **)malloc(sizeof(char *) * 3);
+
 				input[0] = strdup("/usr/bin/php-cgi");
 				input[1] = strdup(file.c_str());
 				input[2] = NULL;
 				int ret_exec = execve("/usr/bin/php-cgi", input, NULL);
 				exit(EXIT_FAILURE);
-				(void)ret_exec;//unused
+				(void)ret_exec; //unused
 			}
-			else {
+			else
+			{
 				close(link[1]);
 				int nbytes = read(link[0], foo, sizeof(foo));
 				std::string response("HTTP/1.1 200 OK\nContent-Length: ");
@@ -119,7 +119,8 @@ int main(int argc, char **argv, char **env)
 			}
 			close(new_socket);
 		}
-		else {
+		else
+		{
 			// Openation du fichier
 			int ret = open(file.c_str(), O_RDONLY);
 			std::cout << ret << std::endl;
@@ -136,7 +137,7 @@ int main(int argc, char **argv, char **env)
 				// Envoie réponse
 				write(new_socket, response.c_str(), strlen(response.c_str()));
 				close(ret);
-				(void)read_ret;//unused
+				(void)read_ret; //unused
 			}
 			else
 				write(new_socket, hello.c_str(), hello.size());

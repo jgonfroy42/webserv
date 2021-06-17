@@ -14,7 +14,7 @@
 
 int init_server(t_param_server *param)
 {
-	int	on = 1;
+	int on = 1;
 
 	//creation du socket qui va recevoir les connections, besoin d'un socket par port
 	if ((param->socketId = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
@@ -22,7 +22,7 @@ int init_server(t_param_server *param)
 		std::cerr << "Error : cannot create socket" << std::endl;
 		return -1;
 	}
-	if (setsockopt(param->socketId, SOL_SOCKET,  SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+	if (setsockopt(param->socketId, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
 	{
 		std::cerr << "Error : cannot put option on socket" << std::endl;
 		return -1;
@@ -33,9 +33,9 @@ int init_server(t_param_server *param)
 		return -1;
 	}
 	memset(&param->socketAddr, 0, sizeof(param->socketAddr));
-	param->socketAddr.sin6_family      = AF_INET6;
+	param->socketAddr.sin6_family = AF_INET6;
 	memcpy(&param->socketAddr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	param->socketAddr.sin6_port        = htons(PORT);
+	param->socketAddr.sin6_port = htons(PORT);
 	if (bind(param->socketId, (struct sockaddr *)&param->socketAddr, sizeof(param->socketAddr)) < 0)
 	{
 		std::cerr << "Error : cannot bind socket" << std::endl;
@@ -67,12 +67,12 @@ void launch_server(t_param_server *param)
 		if ((nb_readable = poll(fds, nfds , 36000)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
-			return ;
+			return;
 		}
 		if (nb_readable == 0)
 		{
 			std::cout << "Time out" << std::endl;
-			return ;
+			return;
 		}
 		for (int i = 0; i < nfds; ++i)
 		{
@@ -121,12 +121,12 @@ void launch_server(t_param_server *param)
 
 int	get_data(int fd, struct sockaddr_in6 addr)
 {
-	int	data_len;
-	char	buffer[BUFFER_SIZE];
+	int data_len;
+	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
 
 	(void)addr;
-	data_len = recv(fd, buffer, sizeof(buffer), 0);
-	std::cout << "data len : " << data_len << std::endl;
+	memset(buffer, 0, BUFFER_SIZE);
+	data_len = recv(fd, buffer, BUFFER_SIZE, 0);
 	if (data_len < 0)
 		return 0;
 	if (data_len == 0)
@@ -136,13 +136,38 @@ int	get_data(int fd, struct sockaddr_in6 addr)
 	}
 
 	//parsing request
+	(void)addr; //a voir si on en aura besoin. Pour linstant void sale
+	std::cout << std::endl
+			  << "---RAW REQUEST FROM CLIENT(requestStr):\n"
+			  << buffer << "--end of requestStr--\n"
+			  << std::endl;
 	std::string requestStr(buffer);
-//	Request request(requestStr, &addr);
-//	std::cout << request;
-	std::cout << buffer << std::endl;
+	Request request(buffer);
+	std::cout << request;
 
 	//send response
-	std::string response = "Server response\n";
-	send(fd, response.c_str(), response.size(), 0);
-	return 0;
+
+	char *response;
+	int response_size;
+	response = NULL;
+	response_size = build_response(request, &response);
+
+	//send response
+	send(fd, response, response_size, 0);
+	std::cout << std::endl
+			  << "---RESPONSE SENT TO CLIENT:\n"
+			  << response << "\n--end of response to client--\n"
+			  << std::endl;
+
+	delete response; //new dans build_response	 // a reverifier
+//	if (chunked)
+//		return 0;
+	return 1;
 }
+
+/*		std::string response = "Server response\n";
+//		std::string response = "HTTP/1.1 301 Moved Permanently\nLocation: http://www.google.com/\nContent-Type: text/html; charset=UTF-8\n \
+		Date: Mon, 14 Jun 2021 14:47:11 GMT\nExpires: Wed, 14 Jul 2021 14:47:11 GMT\nCache-Control: public, max-age=2592000\nServer: gws\n \
+		Content-Length: 219\nX-XSS-Protection: 0\nX-Frame-Options: SAMEORIGIN\n\n \
+		HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n \
+		<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\n</BODY></HTML>\n"; */
