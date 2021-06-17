@@ -31,6 +31,7 @@ class Server
 		int			get_id() const;
 		int			get_port() const;
 		string		get_host() const;
+		string		get_host_port() const;
 		vec_string	get_server_names() const;
 		string		get_root() const;
 		int			get_client_max_body_size() const;
@@ -44,6 +45,7 @@ class Server
 		int				_id;
 		int				_port;
 		string			_host;
+		string			_host_port;
 		vec_string		_server_names;
 		int				_client_max_body_size;
 		string			_root;
