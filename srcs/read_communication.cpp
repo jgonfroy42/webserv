@@ -153,7 +153,9 @@ int get_data(int i, struct sockaddr_in6 addr)
 			  << std::endl;
 
 	delete response; //new dans build_response	 // a reverifier
-	return 0;
+//	if (chunked)
+//		return 0;
+	return 1;
 }
 
 /*		std::string response = "Server response\n";

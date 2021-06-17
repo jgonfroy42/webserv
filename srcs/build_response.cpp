@@ -204,7 +204,8 @@ int response_to_POST(Request &request, char **response, size_t &response_size)
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
-		char *size_itoa = (char *)NumberToString(body.size()).c_str();
+		char *size_itoa;
+	   	size_itoa =(char *) NumberToString(body.size()).c_str();
 		add_header(headers, "Content-Length: ", string(size_itoa));
 
 		size_t begin = cgi_str.find("Content-type: ");
@@ -240,7 +241,8 @@ int response_to_GET_or_HEAD(Request &request, char **response, size_t &response_
 		add_status_line(headers, OK); //200
 
 		//headers
-		char *size_itoa = (char *)NumberToString(file_size).c_str();
+		char *size_itoa;
+		size_itoa = (char *)NumberToString(file_size).c_str();
 		if (request.get_headers()["Transfer-Encoding"] != string())
 			add_header(headers, "Content-Length: ", string(size_itoa));
 		add_header(headers, "Date: ", get_current_date());
