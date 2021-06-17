@@ -16,6 +16,7 @@ public:
 	~Request();
 
 	bool is_method_valid() const;
+	bool is_bad_request() const;
 	bool is_CGI() const;
 
 	//GETTERS:

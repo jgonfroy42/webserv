@@ -137,29 +137,27 @@ string Request::parse_body(const char *request)
 	string requestStr = string(request);
 	size_t pos;
 	char separator[5] = {13, 10, 13, 10, 0}; //sequence of non printable chars that separate the headers of the body in a client request(chrome) + \0
-	pos = requestStr.find(separator) + 4;
+	pos = requestStr.find(separator);
 
-	if (pos == requestStr.size()) //no body
-	{
-		std::cout << "NO body in the request\n";
+	if (pos == (requestStr.size() + 4) || pos == string::npos) //no body//+4 = taille du separator == on test si body vide
 		return (string());
-	}
 	else
-	{
-		std::cout << "a body was found in the request\n";
 		return (string(requestStr, pos + 4));
-	}
 }
 
 int Request::parse_start_line(string start_line)
 {
 	string::iterator it_begin = start_line.begin();
 	string::iterator it_end = it_begin + start_line.find(" ");
-	_method = string(it_begin, it_end++);
+	std::cout<<"PSL0\n";
+	if (*it_begin && *it_end)
+		_method = string(it_begin, it_end++);
 	it_begin = it_end;
 	while (*it_end && *it_end != ' ')
 		it_end++;
-	_URI = string(it_begin, it_end++);
+	std::cout<<"PSL1\n";
+	if (*it_begin && *it_end)
+		_URI = string(it_begin, it_end++);
 	size_t pos;
 	size_t len = 0;
 	if ((pos = _URI.find('?')) != string::npos)
@@ -170,7 +168,7 @@ int Request::parse_start_line(string start_line)
 			len++;	
 		_query_string = string(_URI, pos, len);
 	}
-	else
+	else if (_URI != string())
 	{
 		_path = string(_URI, 1, string::npos);
 		_query_string = string();
@@ -178,7 +176,10 @@ int Request::parse_start_line(string start_line)
 	it_begin = it_end;
 	while (*it_end && *it_end != '\n')
 		it_end++;
-	_protocol = string(it_begin, it_end);
+	std::cout<<"PSL2\n";
+	if (*it_begin && *it_end)
+		_protocol = string(it_begin, it_end);
+	std::cout<<"PSL3\n";
 	if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
 	{ //NB: CGI PATH EN STATIQUE
 		len = 0;
@@ -192,7 +193,15 @@ int Request::parse_start_line(string start_line)
 
 bool Request::is_method_valid() const
 {
-	if (_method == "GET" || _method == "HEAD" || _method == "POST" || _method == "PUT" || _method == "DELETE" || _method == "CONNECT" || _method == "OPTIONS" || _method == "TRACE")
+	if (_method == "GET" || _method == "HEAD" || _method == "POST" || _method == "DELETE")
+		return true;
+	else
+		return false;
+}
+
+bool Request::is_bad_request() const
+{
+	if (get_headers()["Host"] == string())
 		return true;
 	else
 		return false;

@@ -34,7 +34,7 @@ map_str_str		statusCodes()
 	statuscode["402"] = "Payment Required";
 	statuscode["403"] = "Forbidden";
 	statuscode["404"] = "Not Found";
-	statuscode["405"] = "Method Not Allowed";
+	statuscode["405"] = "Not Allowed";
 	statuscode["406"] = "Not Acceptable";
 	statuscode["407"] = "Proxy Authentication Required";
 	statuscode["408"] = "Request Time-out";

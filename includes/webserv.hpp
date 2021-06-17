@@ -32,11 +32,12 @@
 
 // STATUS CODES
 # define OK					"200"
+# define CREATED			"201"
+# define NO_CONTENT			"204"
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
+# define NOT_ALLOWED		"405"
 # define NOT_IMPLEMENTED	"501"
-# define NO_CONTENT			"204"
-# define CREATED			"200"
 
 typedef struct s_param_server
 {
@@ -52,7 +53,7 @@ typedef std::map<std::string, std::string> map_str_str;
 class Server;
 
 void			displayMap(map_str_str toDisplay);
-int				build_response(Request &request, char **response);
+size_t			build_response(Request &request, char **response);
 map_str_str		statusCodes();
 
 
