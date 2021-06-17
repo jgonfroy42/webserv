@@ -35,7 +35,7 @@ int init_server(t_param_server *param)
 	memset(&param->socketAddr, 0, sizeof(param->socketAddr));
 	param->socketAddr.sin6_family = AF_INET6;
 	memcpy(&param->socketAddr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	param->socketAddr.sin6_port = htons(PORT);
+	param->socketAddr.sin6_port = htons(param->port);
 	if (bind(param->socketId, (struct sockaddr *)&param->socketAddr, sizeof(param->socketAddr)) < 0)
 	{
 		std::cerr << "Error : cannot bind socket" << std::endl;
@@ -52,19 +52,24 @@ int init_server(t_param_server *param)
 	return 0;
 }
 
-void launch_server(t_param_server *param)
+void launch_server(std::vector<int> socketID)
 {
 	int nb_readable, new_co;
-	int nfds = 1;
+	int nfds = socketID.size();
 	struct pollfd *fds = NULL;
 
 	fds = (struct pollfd *)calloc(nfds, sizeof(*fds));
-	fds[0].fd = param->socketId;
-	fds[0].events = POLLIN;
+	int	i = 0;
+	for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
+	{
+		fds[i].fd = *it;
+		fds[i].events = POLLIN;
+		++i;
+	}
 	while (1)
 	{
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds , 36000)) < 0)
+		if ((nb_readable = poll(fds, nfds, 36000)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -85,28 +90,32 @@ void launch_server(t_param_server *param)
 				return ;
 			}
 			//si le server est lisible, ca veut dire qu'on peut accepter les connexions entrantes
-			if (fds[i].fd == param->socketId)
+			for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
 			{
-				do
+				if (fds[i].fd == *it)
 				{
-					new_co = accept(param->socketId, NULL, NULL);
-					if (new_co < 0)
+					do
 					{
-						if (errno != EWOULDBLOCK)
+						new_co = accept(*it, NULL, NULL);
+						if (new_co < 0)
 						{
-							std::cerr << "Error: accept failed" << std::endl;
-							return ;
+							if (errno != EWOULDBLOCK)
+							{
+								std::cerr << "Error: accept failed" << std::endl;
+								return ;
+							}
+							break;
 						}
-						break;
-					}
-					fds[nfds].fd = new_co;
-					fds[nfds].events = POLLIN;
-					nfds++;
-				} while (new_co != -1);
+						fds[nfds].fd = new_co;
+						fds[nfds].events = POLLIN;
+						nfds++;
+					} while (new_co != -1);
+					break ;
+				}
 			}
-			else
-			{
-				if (get_data(fds[i].fd, param->socketAddr))
+//			else
+//			{
+				if (get_data(fds[i].fd))
 				{
 				//si le read renvoie 0, la connection est fini donc on la close ici
 					close(fds[i].fd);
@@ -114,12 +123,12 @@ void launch_server(t_param_server *param)
 						fds[j].fd = fds[j+1].fd;
 					nfds--;
 				}
-			}
+//			}
 		}
 	}
 }
 
-int	get_data(int fd, struct sockaddr_in6 addr)
+int	get_data(int fd)
 {
 	int data_len;
 	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
@@ -135,7 +144,6 @@ int	get_data(int fd, struct sockaddr_in6 addr)
 	}
 
 	//parsing request
-	(void)addr; //a voir si on en aura besoin. Pour linstant void sale
 	std::cout << std::endl
 			  << "---RAW REQUEST FROM CLIENT(requestStr):\n"
 			  << buffer << "--end of requestStr--\n"

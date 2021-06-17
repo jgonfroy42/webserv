@@ -33,7 +33,7 @@
 
 # define PORT 8080
 # define PENDING_MAX 10
-# define BUFFER_SIZE 3000
+# define BUFFER_SIZE 30000
 
 // STATUS CODES
 # define OK					"200"
@@ -72,7 +72,7 @@ std::vector<int>	get_ports(std::vector<Server> servers);
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);
-void	launch_server(t_param_server *param);
-int		get_data(int i, struct sockaddr_in6 addr);
+void	launch_server(std::vector<int> socketID);
+int		get_data(int fd);
 
 #endif
