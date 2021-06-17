@@ -15,8 +15,21 @@ Request::Request(const char *request_array)
 	string start_line = string(request_string, 0, request_string.find('\n'));
 	parse_start_line(request_string);
 	_headers = parse_headers(request_string);
-	//	_client_addr = client_addr; //useful pour le REMOTE_ADDR pas sous forme de str car fonction pour l'avoir sous forme de str pas autorisee?
-	//_addr_len; //idem: useful?
+
+	_host_port = string(_headers["Host"]);
+	size_t pos;
+	if ((pos = _host_port.find(":")) != string::npos)
+	{
+		_host = string(_host_port, 0, pos);
+		_port = string(_host_port, pos + 1);
+		while(!isdigit(_port[_port.size() -1]))
+			_port = string(_port, 0, _port.size() - 1);
+	}
+	else
+	{
+		_host = _host_port;
+		_port = string();
+	}
 }
 
 Request::Request(const Request &src)
@@ -25,6 +38,9 @@ Request::Request(const Request &src)
 	//	_CGI_env = src._CGI_env;
 	_method = src._method;
 	_headers = src._headers;
+	_host_port = src.get_host_port();
+	_host = src.get_host();
+	_port = src.get_port();
 	_body = src._body;
 	std::cout << "end of copy constructor" << std::endl;
 }
@@ -34,6 +50,9 @@ Request::Request(Request const &src, string body)
 	std::cout << "copy constructor with new body" << std::endl;
 	_method = src._method;
 	_headers = src._headers;
+	_host_port = src.get_host_port();
+	_host = src.get_host();
+	_port = src.get_port();
 	_body = body;
 }
 
@@ -58,6 +77,9 @@ Request &Request::operator=(Request const &rhs)
 		_method = rhs.get_method();
 		_headers = rhs.get_headers();
 		_body = rhs.get_body();
+		_host_port = rhs.get_host_port();
+		_host = rhs.get_host();
+		_port = rhs.get_port();
 	}
 	return *this;
 }
@@ -70,6 +92,8 @@ std::ostream &operator<<(std::ostream &o, Request const &i)
 	  << "Path: " << i.get_path() << std::endl
 	  << "Query string: " << i.get_query_string() << std::endl
 	  << "Protocol: " << i.get_protocol() << std::endl
+	  << "Host: " << i.get_host() << std::endl
+	  << "Port: " << i.get_port() << " of size " << i.get_port().size()<<std::endl
 	  << "Headers:" << std::endl;
 	displayMap(i.get_headers());
 	o << std::endl
@@ -149,13 +173,13 @@ int Request::parse_start_line(string start_line)
 {
 	string::iterator it_begin = start_line.begin();
 	string::iterator it_end = it_begin + start_line.find(" ");
-	std::cout<<"PSL0\n";
+	std::cout << "PSL0\n";
 	if (*it_begin && *it_end)
 		_method = string(it_begin, it_end++);
 	it_begin = it_end;
 	while (*it_end && *it_end != ' ')
 		it_end++;
-	std::cout<<"PSL1\n";
+	std::cout << "PSL1\n";
 	if (*it_begin && *it_end)
 		_URI = string(it_begin, it_end++);
 	size_t pos;
@@ -165,7 +189,7 @@ int Request::parse_start_line(string start_line)
 		_path = string(_URI, 1, pos - 1);
 		pos += 1;
 		while (start_line[pos + len] && start_line[pos + len] != ' ')
-			len++;	
+			len++;
 		_query_string = string(_URI, pos, len);
 	}
 	else if (_URI != string())
@@ -176,10 +200,10 @@ int Request::parse_start_line(string start_line)
 	it_begin = it_end;
 	while (*it_end && *it_end != '\n')
 		it_end++;
-	std::cout<<"PSL2\n";
+	std::cout << "PSL2\n";
 	if (*it_begin && *it_end)
 		_protocol = string(it_begin, it_end);
-	std::cout<<"PSL3\n";
+	std::cout << "PSL3\n";
 	if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
 	{ //NB: CGI PATH EN STATIQUE
 		len = 0;
@@ -249,6 +273,22 @@ string Request::get_body() const
 {
 	return (_body);
 }
+
+string Request::get_host_port() const
+{
+	return (_host_port);
+}
+
+string Request::get_host() const
+{
+	return (_host);
+}
+
+string Request::get_port() const
+{
+	return (_port);
+}
+
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

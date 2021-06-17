@@ -53,7 +53,7 @@ typedef std::map<std::string, std::string> map_str_str;
 class Server;
 
 void			displayMap(map_str_str toDisplay);
-size_t			build_response(Request &request, char **response);
+size_t			build_response(Request &request, char **response, 									std::vector<Server> &servers);
 map_str_str		statusCodes();
 
 
@@ -68,7 +68,7 @@ std::vector<int>	get_ports(std::vector<Server> servers);
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);
-void	launch_server(t_param_server *param);
-int		get_data(int i, struct sockaddr_in6 addr);
+void	launch_server(t_param_server *param, std::vector<Server> &servers);
+int		get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers);
 
 #endif

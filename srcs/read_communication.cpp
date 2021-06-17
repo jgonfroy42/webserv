@@ -52,7 +52,7 @@ int init_server(t_param_server *param)
 	return 0;
 }
 
-void launch_server(t_param_server *param)
+void launch_server(t_param_server *param, std::vector<Server> &servers)
 {
 	fd_set entries;
 	int nb_readable, max_sd;
@@ -99,7 +99,7 @@ void launch_server(t_param_server *param)
 					} while (new_co != -1);
 				}
 				//sinon, ca veut dire qu'on peut faire un read sur les connections
-				else if (get_data(i, param->socketAddr))
+				else if (get_data(i, param->socketAddr, servers))
 				{
 					//si le read renvoie 0, la connection est fini donc on la close ici
 					close(i);
@@ -113,7 +113,7 @@ void launch_server(t_param_server *param)
 	}
 }
 
-int get_data(int i, struct sockaddr_in6 addr)
+int get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers)
 {
 	int data_len;
 	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
@@ -142,7 +142,7 @@ int get_data(int i, struct sockaddr_in6 addr)
 
 	char *response = NULL;
 	size_t response_size;
-	response_size = build_response(request, &response);
+	response_size = build_response(request, &response, servers);
 
 	//send response
 	send(i, response, response_size, 0);

@@ -277,6 +277,30 @@ size_t response_to_GET_or_HEAD(Request &request, char **response)
 	return response_size;
 }
 
+Server choose_server(Request &request, std::vector<Server> &servers)
+{
+	bool port_found = false;
+	Server chosen_server = servers[0];
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	{
+		if (it->get_port_str() == request.get_port())
+		{
+			std::cout<<"same port found\n";
+			if (port_found == false)
+			{
+				port_found = true;
+				chosen_server = *it;
+			}
+			if (it->get_host() == request.get_host())
+			{
+				std::cout<<"same host found\n";
+				return(*it);
+			}
+		}
+	}
+	return chosen_server;
+}
+
 size_t default_response(char **response, string code)
 {
 	string headers("HTTP/1.1 ");
@@ -285,8 +309,11 @@ size_t default_response(char **response, string code)
 	return headers.size();
 }
 
-size_t build_response(Request &request, char **response)
+size_t build_response(Request &request, char **response, std::vector<Server> &servers)
 {
+	Server config = choose_server(request, servers);
+	std::cout << "Selected config is:\n" << config;
+
 	if (request.is_bad_request())
 		return default_response(response, BAD_REQUEST); //400
 	else if (request.is_method_valid())

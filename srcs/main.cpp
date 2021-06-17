@@ -19,6 +19,6 @@ int	main(int argc, char** argv)
 		delete param;
 		return -1;
 	}
-	launch_server(param);
+	launch_server(param, servers);
 	delete param;
 }
