@@ -46,9 +46,9 @@
 typedef struct s_param_server
 {
 	int		socketId;
-	fd_set	socket;
-	timeval	timeout;
-	struct sockaddr_in6	socketAddr;
+	int		port;
+	struct sockaddr_in6	socketAddr; //utile ? Est-ce que la structure est toujours utile ?
+	struct s_param_server	*next;
 }	t_param_server;
 
 typedef std::string string;

@@ -124,7 +124,6 @@ int	get_data(int fd, struct sockaddr_in6 addr)
 	int data_len;
 	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
 
-	(void)addr;
 	memset(buffer, 0, BUFFER_SIZE);
 	data_len = recv(fd, buffer, BUFFER_SIZE, 0);
 	if (data_len < 0)
