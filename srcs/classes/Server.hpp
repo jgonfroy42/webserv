@@ -30,6 +30,7 @@ class Server
 
 		int			get_id() const;
 		int			get_port() const;
+		string		get_port_str() const;
 		string		get_host() const;
 		string		get_host_port() const;
 		vec_string	get_server_names() const;
@@ -44,6 +45,7 @@ class Server
 	private:
 		int				_id;
 		int				_port;
+		string			_port_str;
 		string			_host;
 		string			_host_port;
 		vec_string		_server_names;

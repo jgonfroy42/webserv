@@ -35,6 +35,9 @@ string	Server::get_host() const
 string	Server::get_host_port() const
 { return (this->_host_port); }
 
+string	Server::get_port_str() const
+{ return (this->_port_str); }
+
 std::vector<string>	Server::get_server_names() const
 { return (this->_server_names); }
 
@@ -108,6 +111,7 @@ void	Server::set_host_port(const string server_config)
 		error_bad_config("Missing port.");
 	this->_host = port_line.substr(split_pos + 1, separator_pos - split_pos - 1);
 	this->_host_port = port_line.substr(split_pos + 1);
+	this->_port_str = port_line.substr(separator_pos + 1);
 	std::istringstream iss (port_line.substr(separator_pos + 1));
 	iss >> this->_port;
 }
@@ -223,7 +227,7 @@ std::ostream &			operator<<( std::ostream & o, Server const & i )
 	o << std::endl << "--- SERVER CONFIGURATION ---" << std::endl << std::endl;
 	o << "Id:\t\t" << i.get_id() << std::endl;
 	o << "Host:\t\t" << i.get_host() << std::endl;
-	o << "Port:\t\t" << i.get_port() << std::endl;
+	o << "Port:\t\t" << i.get_port_str() << std::endl;
 	o << "Host_Port:\t" << i.get_host_port() << std::endl;
 	o << "Names:\t\t";
 	std::vector<string> names = i.get_server_names();
