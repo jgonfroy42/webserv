@@ -277,7 +277,7 @@ size_t response_to_GET_or_HEAD(Request &request, char **response)
 	return response_size;
 }
 
-Server choose_server(Request &request, std::vector<Server> &servers)
+Server choose_config(Request &request, std::vector<Server> &servers)
 {
 	bool port_found = false;
 	Server chosen_server = servers[0];
@@ -311,7 +311,7 @@ size_t default_response(char **response, string code)
 
 size_t build_response(Request &request, char **response, std::vector<Server> &servers)
 {
-	Server config = choose_server(request, servers);
+	Server config = choose_config(request, servers);
 	std::cout << "Selected config is:\n" << config;
 
 	if (request.is_bad_request())

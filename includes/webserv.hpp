@@ -20,15 +20,20 @@
 # include <errno.h>
 # include <fstream>
 # include <vector>
+# include <poll.h>
+
+//Toujours utile ?
 # include <sys/ioctl.h>
 # include <cstring>
+
+
 # include "../srcs/classes/Server.hpp"
 # include "../srcs/classes/Location.hpp"
 # include "../srcs/classes/Request.hpp"
 
 # define PORT 8080
 # define PENDING_MAX 10
-# define BUFFER_SIZE 3000
+# define BUFFER_SIZE 30000
 
 // STATUS CODES
 # define OK					"200"
@@ -42,9 +47,9 @@
 typedef struct s_param_server
 {
 	int		socketId;
-	fd_set	socket;
-	timeval	timeout;
-	struct sockaddr_in6	socketAddr;
+	int		port;
+	struct sockaddr_in6	socketAddr; //utile ? Est-ce que la structure est toujours utile ?
+	struct s_param_server	*next;
 }	t_param_server;
 
 typedef std::string string;
@@ -68,7 +73,7 @@ std::vector<int>	get_ports(std::vector<Server> servers);
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);
-void	launch_server(t_param_server *param, std::vector<Server> &servers);
-int		get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers);
+void	launch_server(std::vector<int> socketID, std::vector<Server> &servers);
+int		get_data(int fd, std::vector<Server> &servers);
 
 #endif

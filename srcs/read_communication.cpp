@@ -35,7 +35,7 @@ int init_server(t_param_server *param)
 	memset(&param->socketAddr, 0, sizeof(param->socketAddr));
 	param->socketAddr.sin6_family = AF_INET6;
 	memcpy(&param->socketAddr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	param->socketAddr.sin6_port = htons(PORT);
+	param->socketAddr.sin6_port = htons(param->port);
 	if (bind(param->socketId, (struct sockaddr *)&param->socketAddr, sizeof(param->socketAddr)) < 0)
 	{
 		std::cerr << "Error : cannot bind socket" << std::endl;
@@ -52,20 +52,24 @@ int init_server(t_param_server *param)
 	return 0;
 }
 
-void launch_server(t_param_server *param, std::vector<Server> &servers)
+void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 {
-	fd_set entries;
-	int nb_readable, max_sd;
-	int new_co = 0;
+	int nb_readable, new_co;
+	int nfds = socketID.size();
+	struct pollfd *fds = NULL;
 
-	FD_ZERO(&param->socket);
-	max_sd = param->socketId;
-	FD_SET(param->socketId, &param->socket);
+	fds = (struct pollfd *)calloc(nfds, sizeof(*fds));
+	int	i = 0;
+	for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
+	{
+		fds[i].fd = *it;
+		fds[i].events = POLLIN;
+		++i;
+	}
 	while (1)
 	{
-		memcpy(&entries, &param->socket, sizeof(param->socket));
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = select(max_sd + 1, &entries, NULL, NULL, &param->timeout)) < 0)
+		if ((nb_readable = poll(fds, nfds, 36000)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -75,51 +79,60 @@ void launch_server(t_param_server *param, std::vector<Server> &servers)
 			std::cout << "Time out" << std::endl;
 			return;
 		}
-		for (int i = 0; i <= max_sd && nb_readable; ++i)
+		for (int i = 0; i < nfds; ++i)
 		{
-			//check un a un si les descripteurs qui sont lisibles
-			if (FD_ISSET(i, &entries))
+			//il ne se passe rien pour ce descripteur
+			if (fds[i].revents == 0)
+				continue;
+			if (fds[i].revents != POLLIN)
 			{
-				nb_readable--;
-				//si le serveur est lisible ca veut dire qu'il a des connections entrantes a accepter
-				if (i == param->socketId)
+				std::cout << "Error";
+				return ;
+			}
+			//si le server est lisible, ca veut dire qu'on peut accepter les connexions entrantes
+			for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
+			{
+				if (fds[i].fd == *it)
 				{
 					do
 					{
-						new_co = accept(param->socketId, NULL, NULL);
+						new_co = accept(*it, NULL, NULL);
 						if (new_co < 0)
 						{
-							if (errno != EAGAIN)
-								std::cerr << "Error: cannot accept new connection" << std::endl;
+							if (errno != EWOULDBLOCK)
+							{
+								std::cerr << "Error: accept failed" << std::endl;
+								return ;
+							}
 							break;
 						}
-						FD_SET(new_co, &param->socket);
-						if (new_co > max_sd)
-							max_sd = new_co;
+						fds[nfds].fd = new_co;
+						fds[nfds].events = POLLIN;
+						nfds++;
 					} while (new_co != -1);
+					break ;
+					//si le poll correspondait a un socket on ne fait pas de read sur les connections
 				}
-				//sinon, ca veut dire qu'on peut faire un read sur les connections
-				else if (get_data(i, param->socketAddr, servers))
-				{
-					//si le read renvoie 0, la connection est fini donc on la close ici
-					close(i);
-					FD_CLR(i, &param->socket);
-					if (i == max_sd)
-						while (FD_ISSET(max_sd, &param->socket) == false)
-							max_sd--;
-				}
+			}
+			if (get_data(fds[i].fd, servers))
+			{
+			//si le read renvoie 0, la connection est fini donc on la close ici
+				close(fds[i].fd);
+				for (int j = i; j < nfds - 1; ++j)
+					fds[j].fd = fds[j+1].fd;
+				nfds--;
 			}
 		}
 	}
 }
 
-int get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers)
+int	get_data(int fd, std::vector<Server> &servers)
 {
 	int data_len;
 	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
 
 	memset(buffer, 0, BUFFER_SIZE);
-	data_len = recv(i, buffer, BUFFER_SIZE, 0);
+	data_len = recv(fd, buffer, BUFFER_SIZE, 0);
 	if (data_len < 0)
 		return 0;
 	if (data_len == 0)
@@ -129,7 +142,6 @@ int get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers)
 	}
 
 	//parsing request
-	(void)addr; //a voir si on en aura besoin. Pour linstant void sale
 	std::cout << std::endl
 			  << "---RAW REQUEST FROM CLIENT(requestStr):\n"
 			  << buffer << "--end of requestStr--\n"
@@ -145,7 +157,7 @@ int get_data(int i, struct sockaddr_in6 addr, std::vector<Server> &servers)
 	response_size = build_response(request, &response, servers);
 
 	//send response
-	send(i, response, response_size, 0);
+	send(fd, response, response_size, 0);
 	std::cout << std::endl
 			  << "---RESPONSE SENT TO CLIENT:\n"
 			  << response << "\n--end of response to client--\n"

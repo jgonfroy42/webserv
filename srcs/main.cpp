@@ -4,21 +4,26 @@ int	main(int argc, char** argv)
 {
 	t_param_server *param = new t_param_server;
 	std::vector<Server> servers;
+	std::vector<int> ports;
+	std::vector<int> socketID; //remplacer par stack ?
+	std::vector<int>::iterator it;
 
 	const char *default_config_path = "config/default.conf";
 	if (argc == 2)
 		servers = parsing_config(argv[1]);
 	else
 		servers = parsing_config(default_config_path);
-
-	//a changer avec la conf
-	param->timeout.tv_sec = 3600;
-	param->timeout.tv_usec = 0;
-	if (init_server(param))
+	ports = get_ports(servers);
+	for (it = ports.begin(); it != ports.end(); ++it)
 	{
-		delete param;
-		return -1;
+		param->port = *it;
+		if (init_server(param))
+		{
+			delete param; //remplacer pour delete liste chaine;
+			return -1;
+		}
+		socketID.push_back(param->socketId);
 	}
-	launch_server(param, servers);
+	launch_server(socketID, servers);
 	delete param;
 }
