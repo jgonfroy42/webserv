@@ -24,8 +24,9 @@ class Location
 		bool		auto_index_is_on() const;
 		pair		get_redirect() const;
 		string		get_cgi_path() const;
-		bool		empty() const;
+		bool		is_empty() const;
 		bool		is_cgi() const;
+		bool		root_is_set() const;
 
 	private:
 		int				_id;
@@ -36,6 +37,7 @@ class Location
 		bool			_auto_index;
 		pair			_redirect;
 		string			_cgi_path;
+		bool			_root_set;
 
 		void	set_root(const string location_config);
 		void	set_indexes(const string location_config);

@@ -47,6 +47,8 @@ bool	Location::auto_index_is_on() const
 
 bool	Location::method_is_allowed(const string method) const
 {
+	if (this->is_empty())
+		return true;
 	if ( this->_allowed_methods.find(method) == this->_allowed_methods.end() )
 		return (false);
 	else
@@ -59,7 +61,7 @@ string Location::get_cgi_path() const
 pair		Location::get_redirect() const 
 { return (this->_redirect); }
 
-bool		Location::empty() const
+bool		Location::is_empty() const
 {
 	if (this->_id == -1)
 		return (true);
@@ -71,6 +73,12 @@ bool		Location::is_cgi() const
 	if (this->_cgi_path == "")
 		return (false);
 	return (true);
+}
+
+
+bool		Location::root_is_set() const
+{
+	return this->_root_set;
 }
 
 
@@ -102,11 +110,15 @@ void	Location::set_root(const string location_config)
 	string root_line = get_configuration(location_config, "root", true);
 	if (root_line != "")
 	{
+		_root_set = true;
 		size_t split_pos = root_line.find(' ');
 		if (split_pos == string::npos)
 			error_bad_config("Invalid instruction. (root)");
 		this->_root = root_line.substr(split_pos + 1);
 	}
+	else
+		_root_set = false;
+
 }
 
 void	Location::set_indexes(const string location_config)
@@ -193,6 +205,8 @@ void	Location::set_redirection(const string location_config)
 		this->_redirect.first = redirect_line.substr(split_pos + 1, second_split_pos - split_pos - 1);
 		this->_redirect.second = redirect_line.substr(second_split_pos + 1);
 	}
+	else
+		_redirect = pair_str_str(string(), string());
 }
 
 void	Location::set_cgi_path(const string location_config)
@@ -217,6 +231,11 @@ void	Location::set_cgi_path(const string location_config)
 
 std::ostream &			operator<<( std::ostream & o, Location const & i )
 {
+	if (i.is_empty())
+	{
+		o << "\n>empty location<" << std::endl;
+		return o;
+	}
 	o << std::endl << "- Location " << i.get_path() << std::endl;
 	o << "    Id:\t" << i.get_id() << std::endl;
 	if (i.get_root() != "")

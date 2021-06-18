@@ -23,6 +23,7 @@ public:
 	string get_method() const;
 	string get_URI() const;
 	string get_path() const;
+	string get_translated_path() const;
 	string get_host_port() const;
 	string get_host() const;
 	string get_port() const;
@@ -30,6 +31,9 @@ public:
 	string get_protocol() const;
 	map_str_str get_headers() const;
 	string get_body() const;
+
+	//SETTERS:
+	void append_root_to_path(string root);
 
 	Request &operator=(Request const &rhs);
 
@@ -41,6 +45,7 @@ private:
 	string _port;
 	string _host_port;
 	string _path;
+	string _translated_path;
 	string _query_string;
 	string _protocol; //=SERVER PROTOCOL pour CGI
 	map_str_str _headers;

@@ -161,11 +161,6 @@ void free_CGI_env(char **CGI_env)
 	CGI_env = NULL;
 }
 
-string process_post_CGI()
-{
-	return string();
-}
-
 size_t response_to_POST(Request &request, char **response)
 {
 	size_t response_size;
@@ -285,17 +280,13 @@ Server choose_server(Request &request, std::vector<Server> &servers)
 	{
 		if (it->get_port_str() == request.get_port())
 		{
-			std::cout<<"same port found\n";
 			if (port_found == false)
 			{
 				port_found = true;
 				chosen_server = *it;
 			}
 			if (it->get_host() == request.get_host())
-			{
-				std::cout<<"same host found\n";
-				return(*it);
-			}
+				return (*it);
 		}
 	}
 	return chosen_server;
@@ -309,23 +300,66 @@ size_t default_response(char **response, string code)
 	return headers.size();
 }
 
+Location choose_location(string path, vec_location locations)
+{
+	string to_match = string("/") + path;
+	while (to_match != string())
+	{
+		for (vec_location::iterator it = locations.begin(); it != locations.end(); it++)
+		{
+			if (to_match.find(it->get_path()) == 0) //=trouve au debut
+				return (*it);
+		}
+		to_match = string(to_match, 0, to_match.find_last_of('/'));
+	}
+	return Location();
+}
+
+size_t redirected_response(char **response, pair_str_str redirect)
+{
+	string headers("HTTP/1.1 ");
+	add_status_line(headers, redirect.first);
+	add_header(headers, "Location: ", redirect.second);
+	*response = headers_body_join(headers, NULL, headers.size());
+	return headers.size();
+}
+
+bool redirection_found(Location &location)
+{
+	if (location.is_empty()
+		|| location.get_redirect() == pair_str_str(string(), string()))
+		return false;
+	else
+		return true;
+}
+
 size_t build_response(Request &request, char **response, std::vector<Server> &servers)
 {
-	Server config = choose_server(request, servers);
-	std::cout << "Selected config is:\n" << config;
-
 	if (request.is_bad_request())
 		return default_response(response, BAD_REQUEST); //400
-	else if (request.is_method_valid())
-	{
-		//405 if method known but not allowed for the target
-		if (request.get_method() == "GET" || request.get_method() == "HEAD")
-			return response_to_GET_or_HEAD(request, response);
-		else if (request.get_method() == "POST")
-			return response_to_POST(request, response);
-		else if (request.get_method() == "DELETE")
-			return 42;//a implementer
-	}
+
+	Server server = choose_server(request, servers);
+	std::cout << "\n----SELECTED SERVER IS:"
+			  << server;
+	Location location = choose_location(request.get_path(), server.get_locations());
+	std::cout << "----SELECTED LOCATION IS:"
+			  << location;
+	if (!location.method_is_allowed(request.get_method()))
+		return default_response(response, NOT_ALLOWED); //ou 403?
+	std::cout<< "The method is allowed\n";
+	if (location.is_empty() || !location.root_is_set())
+		request.append_root_to_path(server.get_root());
+	else
+		request.append_root_to_path(location.get_root());
+	std::cout << "----NEW PATH IS: " << request.get_path() << std::endl;
+	if (redirection_found(location))
+		return redirected_response(response, location.get_redirect());
+	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
+		return response_to_GET_or_HEAD(request, response);
+	else if (request.get_method() == "POST")
+		return response_to_POST(request, response);
+	else if (request.get_method() == "DELETE")
+		return 42;									//a implementer
 	return default_response(response, NOT_ALLOWED); //405
 }
 

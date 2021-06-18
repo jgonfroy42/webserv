@@ -49,6 +49,7 @@ typedef struct s_param_server
 
 typedef std::string string;
 typedef std::map<std::string, std::string> map_str_str;
+typedef std::pair<std::string, std::string> pair_str_str;
 
 class Server;
 

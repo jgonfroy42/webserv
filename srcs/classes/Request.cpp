@@ -14,6 +14,7 @@ Request::Request(const char *request_array)
 	string request_string = string(request_array);
 	string start_line = string(request_string, 0, request_string.find('\n'));
 	parse_start_line(request_string);
+	_translated_path = string();
 	_headers = parse_headers(request_string);
 
 	_host_port = string(_headers["Host"]);
@@ -22,7 +23,7 @@ Request::Request(const char *request_array)
 	{
 		_host = string(_host_port, 0, pos);
 		_port = string(_host_port, pos + 1);
-		while(!isdigit(_port[_port.size() -1]))
+		while (!isdigit(_port[_port.size() - 1]))
 			_port = string(_port, 0, _port.size() - 1);
 	}
 	else
@@ -42,6 +43,8 @@ Request::Request(const Request &src)
 	_host = src.get_host();
 	_port = src.get_port();
 	_body = src._body;
+	_path = src._path;
+	_translated_path = src._translated_path;
 	std::cout << "end of copy constructor" << std::endl;
 }
 
@@ -53,6 +56,8 @@ Request::Request(Request const &src, string body)
 	_host_port = src.get_host_port();
 	_host = src.get_host();
 	_port = src.get_port();
+	_path = src._path;
+	_translated_path = src._translated_path;
 	_body = body;
 }
 
@@ -80,6 +85,8 @@ Request &Request::operator=(Request const &rhs)
 		_host_port = rhs.get_host_port();
 		_host = rhs.get_host();
 		_port = rhs.get_port();
+		_path = rhs.get_path();
+		_translated_path = rhs.get_translated_path();
 	}
 	return *this;
 }
@@ -93,7 +100,7 @@ std::ostream &operator<<(std::ostream &o, Request const &i)
 	  << "Query string: " << i.get_query_string() << std::endl
 	  << "Protocol: " << i.get_protocol() << std::endl
 	  << "Host: " << i.get_host() << std::endl
-	  << "Port: " << i.get_port() << " of size " << i.get_port().size()<<std::endl
+	  << "Port: " << i.get_port() << " of size " << i.get_port().size() << std::endl
 	  << "Headers:" << std::endl;
 	displayMap(i.get_headers());
 	o << std::endl
@@ -173,13 +180,11 @@ int Request::parse_start_line(string start_line)
 {
 	string::iterator it_begin = start_line.begin();
 	string::iterator it_end = it_begin + start_line.find(" ");
-	std::cout << "PSL0\n";
 	if (*it_begin && *it_end)
 		_method = string(it_begin, it_end++);
 	it_begin = it_end;
 	while (*it_end && *it_end != ' ')
 		it_end++;
-	std::cout << "PSL1\n";
 	if (*it_begin && *it_end)
 		_URI = string(it_begin, it_end++);
 	size_t pos;
@@ -200,10 +205,8 @@ int Request::parse_start_line(string start_line)
 	it_begin = it_end;
 	while (*it_end && *it_end != '\n')
 		it_end++;
-	std::cout << "PSL2\n";
 	if (*it_begin && *it_end)
 		_protocol = string(it_begin, it_end);
-	std::cout << "PSL3\n";
 	if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
 	{ //NB: CGI PATH EN STATIQUE
 		len = 0;
@@ -231,6 +234,23 @@ bool Request::is_bad_request() const
 		return false;
 }
 
+void Request::append_root_to_path(string root)
+{
+	std::cout << "appending root (" << root<<") to path ("<<_path<<")\n";
+	if (root == string())
+		return;
+	while (root.size() >= 1 && root[0] == ('.' | '/'))
+	{
+		//deletion of the "./" part at the beginning of root
+		if (root[0] == '.')
+			root.erase(0, 1);
+		if (root.size() >= 1 && root[0] == '/')
+			root.erase(0, 1);
+	}
+	_path = root + '/' + _path;
+	std::cout << "append_root_to_path function returned: " << _path << '\n';
+}
+
 bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 {
 	if (_method == "GET" && _URI.find("cgi-bin/myscript.cgi") != string::npos)
@@ -252,6 +272,11 @@ string Request::get_URI() const
 string Request::get_path() const
 {
 	return (_path);
+}
+
+string Request::get_translated_path() const
+{
+	return (_translated_path);
 }
 
 string Request::get_query_string() const
@@ -288,7 +313,6 @@ string Request::get_port() const
 {
 	return (_port);
 }
-
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
