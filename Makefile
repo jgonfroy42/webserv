@@ -8,7 +8,7 @@ DIR_SRCS	= srcs/
 DIR_OBJS	= objs/
 DIR_INC		= ./includes/
 
-F_SRCS		= main.cpp classes/Request.cpp debug.cpp read_communication.cpp parsing_config.cpp classes/Location.cpp classes/Server.cpp build_response.cpp status_codes.cpp 
+F_SRCS		= main.cpp classes/Request.cpp debug.cpp read_communication.cpp parsing_config.cpp classes/Location.cpp classes/Server.cpp build_response.cpp status_codes.cpp autoindex.cpp
 
 SRCS		= $(addprefix $(DIR_SRCS), $(F_SRCS))
 

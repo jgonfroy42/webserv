@@ -64,11 +64,16 @@ std::vector<size_t>	find_block(string config, size_t start_pos);
 string	get_block_type(string config, size_t start_block);
 std::vector<int>	get_ports(std::vector<Server> servers);
 
-
+/*autoindex.cpp*/
+void	generate_autoindex(string path, string root);
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);
 void	launch_server(t_param_server *param);
 int		get_data(int i, struct sockaddr_in6 addr);
+
+/*build_response.cpp*/
+string get_last_modified(const char *path);
+off_t get_file_size(const char *path);
 
 #endif
