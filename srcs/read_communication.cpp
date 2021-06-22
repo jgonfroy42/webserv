@@ -58,7 +58,7 @@ void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 	int nfds = socketID.size();
 	struct pollfd *fds = NULL;
 
-	fds = (struct pollfd *)calloc(nfds, sizeof(struct pollfd));
+	fds = (struct pollfd *)calloc(PENDING_MAX + nfds, sizeof(struct pollfd));
 	int	i = 0;
 	for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
 	{
@@ -79,7 +79,7 @@ void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 			std::cout << "Time out" << std::endl;
 			return;
 		}
-		for (int i = 0; i < nfds; ++i)
+		for (i = 0; i < nfds; ++i)
 		{
 			//il ne se passe rien pour ce descripteur
 			if (fds[i].revents == 0)
