@@ -106,11 +106,9 @@ void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 							}
 							break;
 						}
+						fds[nfds].fd = new_co;
+						fds[nfds].events = POLLIN;
 						nfds++;
-						free(fds);
-						fds = (struct pollfd *)calloc(nfds, sizeof(struct pollfd));
-						fds[nfds - 1].fd = new_co;
-						fds[nfds - 1].events = POLLIN;
 					} while (new_co != -1);
 					break ;
 					//si le poll correspondait a un socket on ne fait pas de read sur les connections
