@@ -69,7 +69,7 @@ void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 	while (1)
 	{
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds, 36000)) < 0)
+		if ((nb_readable = poll(fds, nfds, -1)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
