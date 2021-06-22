@@ -4,6 +4,15 @@
 
 // ********** SERVER CONSTRUCTOR / DESTRUCTOR ************ //
 
+Server::Server()
+{
+}
+
+Server::Server(Server const &src)
+{
+	*this = src;
+}
+
 Server::Server(string server_config, int id)
 {
 	this->_id = id;
@@ -14,6 +23,26 @@ Server::Server(string server_config, int id)
 	set_indexes(server_config);
 	set_body_max_size(server_config);
 	set_error_pages(server_config);
+}
+
+Server &Server::operator=(Server const &rhs)
+{
+	if (this != &rhs)
+	{
+		_id = rhs.get_id();
+		_port = rhs.get_port();
+		_port_str = rhs.get_port_str();
+		_host = rhs.get_host();
+		_host_port = rhs.get_host_port();
+		_server_names = rhs.get_server_names();
+		_client_max_body_size = rhs.get_client_max_body_size();
+		_root = rhs.get_root();
+		_index = rhs.get_index();
+		_error_pages = rhs.get_error_pages();
+		_locations = rhs.get_locations();
+
+	}
+	return *this;
 }
 
 Server::~Server()

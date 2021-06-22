@@ -42,8 +42,7 @@ int init_server(t_param_server *param)
 		close(param->socketId);
 		return (-1);
 	}
-	//nombre de connection max, 512 par defaut sur nginx ?
-	if (listen(param->socketId, 512) < 0)
+	if (listen(param->socketId, PENDING_MAX) < 0)
 	{
 		std::cerr << "Error: cannot listen to server" << std::endl;
 		close(param->socketId);
@@ -52,13 +51,16 @@ int init_server(t_param_server *param)
 	return 0;
 }
 
-void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
+void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 {
-	int nb_readable, new_co;
+	int nb_readable = 0;
+	int new_co = 0;
 	int nfds = socketID.size();
-	struct pollfd *fds = NULL;
+	struct pollfd fds[PENDING_MAX + nfds];
 
-	fds = (struct pollfd *)calloc(PENDING_MAX + nfds, sizeof(struct pollfd));
+	memset(fds, 0, sizeof(fds));
+
+//	fds = (struct pollfd *)PENDING_MAX + nfds, sizeof(struct pollfd));
 	int	i = 0;
 	for (std::vector<int>::iterator it = socketID.begin(); it != socketID.end(); ++it)
 	{
@@ -69,7 +71,7 @@ void launch_server(std::vector<int> socketID, std::vector<Server> &servers)
 	while (1)
 	{
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds, -1)) < 0)
+		if ((nb_readable = poll(fds, nfds, 36000)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -146,32 +148,31 @@ int	get_data(int fd, std::vector<Server> &servers)
 			  << "---RAW REQUEST FROM CLIENT(requestStr):\n"
 			  << buffer << "--end of requestStr--\n"
 			  << std::endl;
-	std::string requestStr(buffer);
 	Request request(buffer);
 	std::cout << request;
 
 	//send response
 
-	char *response = NULL;
-	size_t response_size;
-	response_size = build_response(request, &response, servers);
+	string response("HTTP/1.1 ");
+	build_response(request, response, servers);
 
 	//send response
-	send(fd, response, response_size, 0);
-	std::cout << std::endl
-			  << "---RESPONSE SENT TO CLIENT:\n"
-			  << response << "\n--end of response to client--\n"
-			  << std::endl;
+	send(fd, response.c_str(), response.size(), 0);
+	 std::cout << std::endl
+	 		  << "---RESPONSE SENT TO CLIENT:\n"
+	 		  << response << "\n--end of response to client--\n"
+	 		  << std::endl;
 
-	delete response; //new dans build_response	 // a reverifier
+
 //	if (chunked)
 //		return 0;
 	return 1;
 }
 
-/*		std::string response = "Server response\n";
-//		std::string response = "HTTP/1.1 301 Moved Permanently\nLocation: http://www.google.com/\nContent-Type: text/html; charset=UTF-8\n \
-		Date: Mon, 14 Jun 2021 14:47:11 GMT\nExpires: Wed, 14 Jul 2021 14:47:11 GMT\nCache-Control: public, max-age=2592000\nServer: gws\n \
-		Content-Length: 219\nX-XSS-Protection: 0\nX-Frame-Options: SAMEORIGIN\n\n \
-		HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n \
-		<TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\n</BODY></HTML>\n"; */
+//std::string response = "HTTP/1.1 200 OK\nServer: nginx/1.14.0 (Ubuntu)\nDate: Tue, 22 Jun 2021 10:53:09 GMT\nContent-Type: text/html\nContent-Length: 162\nConnection: keep-alive\n\n<html>\n<head><title>404 Not Found</title></head>\n<body bgcolor=\"white\">\n<center><h1>404 Not Found</h1></center>\n<hr><center>nginx/1.14.0 (Ubuntu)</center>\n</body>";
+		// std::string response = "Server response\n";
+		// std::string response = "HTTP/1.1 301 Moved Permanently\nLocation: http://www.google.com/\nContent-Type: text/html; charset=UTF-8\n \
+		// Date: Mon, 14 Jun 2021 14:47:11 GMT\nExpires: Wed, 14 Jul 2021 14:47:11 GMT\nCache-Control: public, max-age=2592000\nServer: gws\n \
+		// Content-Length: 219\nX-XSS-Protection: 0\nX-Frame-Options: SAMEORIGIN\n\n \
+		// HTML><HEAD><meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n \
+		// <TITLE>301 Moved</TITLE></HEAD><BODY>\n<H1>301 Moved</H1>\nThe document has moved\n<A HREF=\"http://www.google.com/\">here</A>.\n</BODY></HTML>\n"; 

@@ -236,7 +236,6 @@ bool Request::is_bad_request() const
 
 void Request::append_root_to_path(string root)
 {
-	std::cout << "appending root (" << root<<") to path ("<<_path<<")\n";
 	if (root == string())
 		return;
 	while (root.size() >= 1 && root[0] == ('.' | '/'))
@@ -248,7 +247,6 @@ void Request::append_root_to_path(string root)
 			root.erase(0, 1);
 	}
 	_path = root + '/' + _path;
-	std::cout << "append_root_to_path function returned: " << _path << '\n';
 }
 
 bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE

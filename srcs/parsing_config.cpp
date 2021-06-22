@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "./classes/Server.hpp"
 
-std::vector<int>	get_ports(std::vector<Server> servers)
+std::vector<int>	get_ports(std::vector<Server> &servers)
 {
 	std::vector<int> ports;
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)

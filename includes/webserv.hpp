@@ -32,8 +32,8 @@
 # include "../srcs/classes/Request.hpp"
 
 # define PORT 8080
-# define PENDING_MAX 10
-# define BUFFER_SIZE 30000
+# define PENDING_MAX 512
+# define BUFFER_SIZE 1024
 
 // STATUS CODES
 # define OK					"200"
@@ -59,7 +59,7 @@ typedef std::pair<std::string, std::string> pair_str_str;
 class Server;
 
 void			displayMap(map_str_str toDisplay);
-size_t			build_response(Request &request, char **response, 									std::vector<Server> &servers);
+size_t			build_response(Request &request, string &response, 									std::vector<Server> &servers);
 map_str_str		statusCodes();
 
 
@@ -68,13 +68,13 @@ std::vector<Server>	parsing_config(const char *config_file);
 void	error_bad_config(string error);
 std::vector<size_t>	find_block(string config, size_t start_pos);
 string	get_block_type(string config, size_t start_block);
-std::vector<int>	get_ports(std::vector<Server> servers);
+std::vector<int>	get_ports(std::vector<Server> &servers);
 
 
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);
-void	launch_server(std::vector<int> socketID, std::vector<Server> &servers);
+void	launch_server(std::vector<int> &socketID, std::vector<Server> &servers);
 int		get_data(int fd, std::vector<Server> &servers);
 
 #endif

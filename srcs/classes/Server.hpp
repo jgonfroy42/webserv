@@ -26,7 +26,11 @@ class Server
 {
 	public:
 		Server(string server_config, int id);
+		Server(Server const &src);
+		Server();
 		~Server();
+
+		Server &operator=(Server const &rhs);
 
 		int			get_id() const;
 		int			get_port() const;

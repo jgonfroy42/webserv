@@ -9,7 +9,7 @@ int	main(int argc, char** argv)
 	std::vector<int>::iterator it;
 
 	const char *default_config_path = "config/default.conf";
-	if (argc == 2)
+	if (argc == 2 && argv[1])
 		servers = parsing_config(argv[1]);
 	else
 		servers = parsing_config(default_config_path);

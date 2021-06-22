@@ -86,18 +86,6 @@ off_t get_file_size(const char *path)
 		return stat_struct.st_size;
 }
 
-char *headers_body_join(string headers, char *body, size_t size)
-{
-	char *dst;
-
-	dst = new char[size];
-	for (size_t i = 0; i < headers.size(); ++i)
-		dst[i] = headers.c_str()[i];
-	for (size_t i = headers.size(); i < size; ++i)
-		dst[i] = body[i - headers.size()];
-	return dst;
-}
-
 std::vector<string> convert_CGI_string_to_vector(string CGI_string)
 {
 	std::vector<string> pairs;
@@ -161,9 +149,8 @@ void free_CGI_env(char **CGI_env)
 	CGI_env = NULL;
 }
 
-size_t response_to_POST(Request &request, char **response)
+size_t response_to_POST(Request &request, string &response)
 {
-	size_t response_size;
 	string request_body = request.get_body();
 	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
 	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
@@ -195,33 +182,36 @@ size_t response_to_POST(Request &request, char **response)
 		close(link[1]);
 		read(link[0], cgi_response, sizeof(cgi_response));
 		string cgi_str(cgi_response);
-		string headers("HTTP/1.1 ");
-		add_status_line(headers, CREATED); //a verifier
+		add_status_line(response, CREATED); //a verifier
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
 		char *size_itoa;
 		size_itoa = (char *)NumberToString(body.size()).c_str();
-		add_header(headers, "Content-Length: ", string(size_itoa));
-
+		add_header(response, "Date: ", get_current_date());	
+		add_header(response, "Content-Length: ", string(size_itoa));
 		size_t begin = cgi_str.find("Content-type: ");
 		size_t end = string(cgi_str, begin + 14).find('\n' | ';');
 		if (end != string::npos && begin != string::npos)
-			add_header(headers, "Content-Type: ", string(cgi_str, begin + 14, end));
-		headers += '\n';
-		response_size = headers.size() + body.size();
-		*response = headers_body_join(headers, (char *)body.c_str(), response_size);
+			add_header(response, "Content-Type: ", string(cgi_str, begin + 14, end));
+		response += '\n';
+		response += body;
 	}
-
-	return response_size;
+	return 42;
 }
 
-size_t response_to_GET_or_HEAD(Request &request, char **response)
+
+size_t default_response(string &response, string code)
 {
-	size_t response_size;
-	string headers("HTTP/1.1 ");
+	add_status_line(response, code);
+	add_header(response, "Date: ", get_current_date());
+	return response.size();
+}
+
+size_t response_to_GET_or_HEAD(Request &request, string &response)
+{
 	off_t file_size;
-	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
+	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string())//remplacer par Celia
 	{
 		std::cerr << "getting GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
@@ -235,47 +225,36 @@ size_t response_to_GET_or_HEAD(Request &request, char **response)
 		stream.open(request.get_path().c_str(), std::ifstream::binary);
 
 		//status line
-		add_status_line(headers, OK); //200
+		add_status_line(response, OK); //200
 
-		//headers
+		//Adding headers
 		char *size_itoa;
 		size_itoa = (char *)NumberToString(file_size).c_str();
-		if (request.get_headers()["Transfer-Encoding"] != string())
-			add_header(headers, "Content-Length: ", string(size_itoa));
-		add_header(headers, "Date: ", get_current_date());
-		add_header(headers, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
-		add_header(headers, "Server: ", "Our webserv"); //choix statique a confirmer
-		if (request.get_method() == "GET")				// Ajout du body
+		add_header(response, "Date: ", get_current_date());
+		add_header(response, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
+		add_header(response, "Server: ", "Our webserv"); //choix statique a confirmer
+		if (request.get_method() == "GET")		// Ajout du body
 		{
-			headers += "\n";
 			char *buffer = new char[file_size];
 			std::ifstream stream;
 			stream.open(request.get_path().c_str(), std::ifstream::binary);
 			stream.read(buffer, sizeof(char) * file_size);
-			response_size = file_size + headers.size();
-			*response = headers_body_join(headers, buffer, response_size);
+			add_header(response, "Content-Length: ", string(size_itoa));
+			response += "\n";
+			response += string(buffer);
 			delete[] buffer;
-		}
-		else //Method == HEAD
-		{
-			response_size = headers.size();
-			*response = headers_body_join(headers, NULL, response_size);
 		}
 		stream.close();
 	}
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
-	{
-		add_status_line(headers, NOT_FOUND);
-		response_size = headers.size();
-		*response = headers_body_join(headers, NULL, response_size);
-	}
-	return response_size;
+		return default_response(response, NOT_FOUND);
+	return 42;
 }
 
-Server choose_server(Request &request, std::vector<Server> &servers)
+Server *choose_server(Request &request, std::vector<Server> &servers)
 {
 	bool port_found = false;
-	Server chosen_server = servers[0];
+	Server *chosen_server = new Server(servers[0]);
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
 		if (it->get_port_str() == request.get_port())
@@ -283,21 +262,18 @@ Server choose_server(Request &request, std::vector<Server> &servers)
 			if (port_found == false)
 			{
 				port_found = true;
-				chosen_server = *it;
+				delete chosen_server;
+				chosen_server = new Server(*it);
 			}
 			if (it->get_host() == request.get_host())
-				return (*it);
+			{
+				delete chosen_server;
+				chosen_server = new Server(*it);
+				return (chosen_server);
+			}
 		}
 	}
 	return chosen_server;
-}
-
-size_t default_response(char **response, string code)
-{
-	string headers("HTTP/1.1 ");
-	add_status_line(headers, code);
-	*response = headers_body_join(headers, NULL, headers.size());
-	return headers.size();
 }
 
 Location choose_location(string path, vec_location locations)
@@ -307,7 +283,7 @@ Location choose_location(string path, vec_location locations)
 	{
 		for (vec_location::iterator it = locations.begin(); it != locations.end(); it++)
 		{
-			if (to_match.find(it->get_path()) == 0) //=trouve au debut
+			if (to_match.find(it->get_path()) == 0) //=first matching
 				return (*it);
 		}
 		to_match = string(to_match, 0, to_match.find_last_of('/'));
@@ -315,43 +291,42 @@ Location choose_location(string path, vec_location locations)
 	return Location();
 }
 
-size_t redirected_response(char **response, pair_str_str redirect)
+size_t redirected_response(string &response, pair_str_str redirect)
 {
-	string headers("HTTP/1.1 ");
-	add_status_line(headers, redirect.first);
-	add_header(headers, "Location: ", redirect.second);
-	*response = headers_body_join(headers, NULL, headers.size());
-	return headers.size();
+	add_status_line(response, redirect.first);
+	add_header(response, "Date: ", get_current_date());
+	add_header(response, "Location: ", redirect.second);
+	return response.size();
 }
 
 bool redirection_found(Location &location)
 {
-	if (location.is_empty()
-		|| location.get_redirect() == pair_str_str(string(), string()))
+	if (location.is_empty() || location.get_redirect() == pair_str_str(string(), string()))
 		return false;
 	else
 		return true;
 }
 
-size_t build_response(Request &request, char **response, std::vector<Server> &servers)
+size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	if (request.is_bad_request())
 		return default_response(response, BAD_REQUEST); //400
-
-	Server server = choose_server(request, servers);
-	std::cout << "\n----SELECTED SERVER IS:"
-			  << server;
-	Location location = choose_location(request.get_path(), server.get_locations());
-	std::cout << "----SELECTED LOCATION IS:"
-			  << location;
+	Server *server = choose_server(request, servers);
+	// std::cout << "\n----SELECTED SERVER IS:"
+	// 		  << server;
+	Location location = choose_location(request.get_path(), server->get_locations());
+	// std::cout << "----SELECTED LOCATION IS:"
+	// 		  << location;
 	if (!location.method_is_allowed(request.get_method()))
+	{
+		delete server;
 		return default_response(response, NOT_ALLOWED); //ou 403?
-	std::cout<< "The method is allowed\n";
+	}
 	if (location.is_empty() || !location.root_is_set())
-		request.append_root_to_path(server.get_root());
+		request.append_root_to_path(server->get_root());
 	else
 		request.append_root_to_path(location.get_root());
-	std::cout << "----NEW PATH IS: " << request.get_path() << std::endl;
+	delete server;
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect());
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
