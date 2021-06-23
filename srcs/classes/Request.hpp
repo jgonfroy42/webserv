@@ -35,6 +35,7 @@ public:
 
 	//SETTERS:
 	void append_root_to_path(string root);
+	void set_unchunked_body(string new_body);
 
 	Request &operator=(Request const &rhs);
 

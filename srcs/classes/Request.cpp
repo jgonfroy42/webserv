@@ -255,6 +255,11 @@ void Request::append_root_to_path(string root)
 	_path = root + '/' + _path;
 }
 
+void Request::set_unchunked_body(string new_body)
+{
+	_body = new_body;
+}
+
 bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 {
 	if (_method == "GET" && _URI.find("cgi-bin/myscript.cgi") != string::npos)
