@@ -18,6 +18,7 @@ public:
 	bool is_method_valid() const;
 	bool is_bad_request() const;
 	bool is_CGI() const;
+	bool is_chunked() const;
 
 	//GETTERS:
 	string get_method() const;
@@ -38,6 +39,7 @@ public:
 	Request &operator=(Request const &rhs);
 
 private:
+	bool	_chunked;
 	string _body;
 	string _method;
 	string _URI;

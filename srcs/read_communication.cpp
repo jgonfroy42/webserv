@@ -71,7 +71,7 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 	while (1)
 	{
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds, 36000)) < 0)
+		if ((nb_readable = poll(fds, nfds, -1)) < 0)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -133,6 +133,7 @@ int	get_data(int fd, std::vector<Server> &servers)
 	int data_len;
 	char buffer[BUFFER_SIZE]; //remplacer BUFFER_SIZE par max body client?
 
+	(void)&servers;
 	memset(buffer, 0, BUFFER_SIZE);
 	data_len = recv(fd, buffer, BUFFER_SIZE, 0);
 	if (data_len < 0)
@@ -151,10 +152,13 @@ int	get_data(int fd, std::vector<Server> &servers)
 	Request request(buffer);
 	std::cout << request;
 
+	if (request.is_chunked())
+		parse_chunked_body(request);
+
 	//send response
 
 	string response("HTTP/1.1 ");
-	build_response(request, response, servers);
+//	build_response(request, response, servers);
 
 	//send response
 	send(fd, response.c_str(), response.size(), 0);

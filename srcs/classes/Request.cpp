@@ -10,6 +10,7 @@ Request::Request()
 
 Request::Request(const char *request_array)
 {
+	_chunked = false;
 	_body = parse_body(request_array);
 	string request_string = string(request_array);
 	string start_line = string(request_string, 0, request_string.find('\n'));
@@ -31,6 +32,11 @@ Request::Request(const char *request_array)
 		_host = _host_port;
 		_port = string();
 	}
+
+	std::string encoding;
+	encoding = string(_headers["Transfer-Encoding"]);
+	if (encoding == "chunked\r")
+		_chunked = true;
 }
 
 Request::Request(const Request &src)
@@ -255,6 +261,11 @@ bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 		return true;
 	else
 		return false;
+}
+
+bool	Request::is_chunked() const
+{
+	return _chunked;
 }
 
 string Request::get_method() const

@@ -70,11 +70,12 @@ std::vector<size_t>	find_block(string config, size_t start_pos);
 string	get_block_type(string config, size_t start_block);
 std::vector<int>	get_ports(std::vector<Server> &servers);
 
-
-
-/*set_communication.cpp*/
+/*read_communication.cpp*/
 int		init_server(t_param_server *param);
 void	launch_server(std::vector<int> &socketID, std::vector<Server> &servers);
 int		get_data(int fd, std::vector<Server> &servers);
+
+/*chunked_request.cpp*/
+void	parse_chunked_body(Request request);
 
 #endif
