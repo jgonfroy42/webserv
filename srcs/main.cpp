@@ -11,7 +11,7 @@ int	main(int argc, char** argv)
 	else
 		servers = parsing_config(default_config_path);
 
-	generate_autoindex("/srcs", "/srcs");
+	generate_autoindex("srcs", "/srcs");
 
 	//a changer avec la conf
 	param->timeout.tv_sec = 3600;
@@ -22,5 +22,5 @@ int	main(int argc, char** argv)
 	// 	return -1;
 	// }
 	// launch_server(param);
-	// delete param;
+	delete param;
 }

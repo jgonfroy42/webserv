@@ -133,8 +133,8 @@ std::vector<Server>		parsing_config(const char *config_path)
 		id_server++;
 	}
 
-	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
-		std::cout << *it;
-	get_ports(servers);
+	// for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+	// 	std::cout << *it;
+	// get_ports(servers);
 	return (servers);
 }
