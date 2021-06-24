@@ -144,6 +144,12 @@ int	get_data(int fd, std::vector<Server> &servers)
 		return 1;
 	}
 
+	//recuperer la request dans un texte pour futur test
+//	std::ofstream file;
+//	file.open("request.txt");
+//	file << buffer;
+//	file.close();
+
 	//parsing request
 	std::cout << std::endl
 			  << "---RAW REQUEST FROM CLIENT(requestStr):\n"
@@ -153,9 +159,22 @@ int	get_data(int fd, std::vector<Server> &servers)
 	std::cout << request;
 
 	if (request.is_chunked())
+	{
 		request = parse_chunked_body(request);
+		if (request.is_chunked_false() == false)
+			std::cout << "pas d'erreur" << std::endl;
+		else
+			std::cout << "erreur" << std::endl;
 
-	//si request == NULL, il faut renvoyer une bad request;
+		//si request.chunked_false == true, il faut renvoyer une bad request;
+		if (request.is_chunked_false())
+		{
+			string response("404 ");
+			send(fd, response.c_str(), response.size(), 0);
+			return 1;
+		}
+	}
+	std::cout << "new body = " << request.get_body() << std::endl;
 
 	//send response
 	string response("HTTP/1.1 ");

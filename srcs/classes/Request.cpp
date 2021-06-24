@@ -11,6 +11,7 @@ Request::Request()
 Request::Request(const char *request_array)
 {
 	_chunked = false;
+	_chunked_error = false;
 	_body = parse_body(request_array);
 	string request_string = string(request_array);
 	string start_line = string(request_string, 0, request_string.find('\n'));
@@ -260,6 +261,11 @@ void Request::set_unchunked_body(string new_body)
 	_body = new_body;
 }
 
+void Request::set_chunked_error(bool error)
+{
+	_chunked_error = error;
+}
+
 bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 {
 	if (_method == "GET" && _URI.find("cgi-bin/myscript.cgi") != string::npos)
@@ -271,6 +277,11 @@ bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 bool	Request::is_chunked() const
 {
 	return _chunked;
+}
+
+bool	Request::is_chunked_false() const
+{
+	return _chunked_error;
 }
 
 string Request::get_method() const

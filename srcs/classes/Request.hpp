@@ -19,6 +19,7 @@ public:
 	bool is_bad_request() const;
 	bool is_CGI() const;
 	bool is_chunked() const;
+	bool is_chunked_false() const;
 
 	//GETTERS:
 	string get_method() const;
@@ -36,11 +37,13 @@ public:
 	//SETTERS:
 	void append_root_to_path(string root);
 	void set_unchunked_body(string new_body);
+	void set_chunked_error(bool error);
 
 	Request &operator=(Request const &rhs);
 
 private:
 	bool	_chunked;
+	bool	_chunked_error;
 	string _body;
 	string _method;
 	string _URI;
