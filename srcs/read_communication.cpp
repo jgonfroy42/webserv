@@ -158,7 +158,6 @@ int	get_data(int fd, std::vector<Server> &servers)
 	//si request == NULL, il faut renvoyer une bad request;
 
 	//send response
-
 	string response("HTTP/1.1 ");
 //	build_response(request, response, servers);
 

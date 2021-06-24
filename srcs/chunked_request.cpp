@@ -5,8 +5,6 @@ unsigned long ft_stoi(std::string str)
 	int num;
 	std::stringstream ss;
 
-//	for (size_t i = 0; i < str.size(); ++i)
-//		if ()
 	ss << str;
 	ss >> num;
 	return num;
@@ -44,6 +42,9 @@ Request	parse_chunked_body(Request request)
 	{
 		if (i % 2 != 0)
 			continue;
+		for (size_t j = 0; j < token[i].size(); ++j)
+			if (!(isdigit(token[i][j])))
+				return NULL;
 		size_line = ft_stoi(token[i]);
 		if (size_line == 0)
 			break;
