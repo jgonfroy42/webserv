@@ -153,7 +153,9 @@ int	get_data(int fd, std::vector<Server> &servers)
 	std::cout << request;
 
 	if (request.is_chunked())
-		parse_chunked_body(request);
+		request = parse_chunked_body(request);
+
+	//si request == NULL, il faut renvoyer une bad request;
 
 	//send response
 
@@ -168,8 +170,6 @@ int	get_data(int fd, std::vector<Server> &servers)
 	 		  << std::endl;
 
 
-//	if (chunked)
-//		return 0;
 	return 1;
 }
 

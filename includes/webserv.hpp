@@ -76,6 +76,6 @@ void	launch_server(std::vector<int> &socketID, std::vector<Server> &servers);
 int		get_data(int fd, std::vector<Server> &servers);
 
 /*chunked_request.cpp*/
-int	parse_chunked_body(Request request);
+Request	parse_chunked_body(Request request);
 
 #endif

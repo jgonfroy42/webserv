@@ -1,17 +1,31 @@
 #include "./../includes/webserv.hpp"
 
-int	parse_chunked_body(Request request)
+unsigned long ft_stoi(std::string str)
 {
+	int num;
+	std::stringstream ss;
+
+//	for (size_t i = 0; i < str.size(); ++i)
+//		if ()
+	ss << str;
+	ss >> num;
+	return num;
+}
+
+Request	parse_chunked_body(Request request)
+{
+	unsigned long	size_line;
+	std::string new_body = "";
 	std::string old_body = request.get_body();
-	std::cout << "size : " << old_body.size() << std::endl;
+
 	if (old_body.size() == 5)
 	{
 		if (old_body[0] == '0')
 		{
 			request.set_unchunked_body("");
-			return 0;
+			return request;
 		}
-		return 1;
+		return NULL;
 	}
 	//split toutes les lignes dans un vector de string et ajouter les lignes qui nous interessent l'un apres l'autre ?
 	//on peut verifier si chaque ligne correspond bien au chiffre
@@ -22,16 +36,23 @@ int	parse_chunked_body(Request request)
 	size_t pos_find, start_find = 0;
 	while ((pos_find = old_body.find(del, start_find)) != string::npos)
 	{
-		std::cout << "start = " << start_find << " end = " << pos_find << std::endl;
-		std::string line = old_body.substr(start_find, pos_find);
-		std::cout << "size line = " << line.size() << std::endl;
+		std::string line = old_body.substr(start_find, (pos_find - start_find));
 		token.push_back(line);
-		std::cout << "size token = " << token.back().size() << std::endl;
 		start_find = pos_find + del.size();
 	}
-//	std::cout << "///////" << token[1] << std::endl;
-	std::cout << "size line = " << token[1].size() << std::endl;
-	request.set_unchunked_body("a parser");
-	std::cout << "New body :" << request.get_body() << std::endl;
-	return 0;
+	for (size_t i = 0; i < token.size(); ++i)
+	{
+		if (i % 2 != 0)
+			continue;
+		size_line = ft_stoi(token[i]);
+		if (size_line == 0)
+			break;
+		if (i + 1 > token.size() || size_line != token[i + 1].size())
+			return NULL;
+		new_body = new_body + token[i + 1];
+	}
+	//ajouter EOF donc "\r\n" ?
+	new_body = new_body + "\r\n";
+	request.set_unchunked_body(new_body);
+	return request;
 }
