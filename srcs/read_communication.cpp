@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/11 14:54:20 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/25 13:01:29 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,11 +161,6 @@ int	get_data(int fd, std::vector<Server> &servers)
 	if (request.is_chunked())
 	{
 		request = parse_chunked_body(request);
-		if (request.is_chunked_false() == false)
-			std::cout << "pas d'erreur" << std::endl;
-		else
-			std::cout << "erreur" << std::endl;
-
 		//si request.chunked_false == true, il faut renvoyer une bad request;
 		if (request.is_chunked_false())
 		{

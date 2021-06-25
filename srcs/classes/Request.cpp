@@ -44,6 +44,8 @@ Request::Request(const Request &src)
 {
 	std::cout << "copy constructor" << std::endl;
 	//	_CGI_env = src._CGI_env;
+	_chunked = src._chunked;
+	_chunked_error = src._chunked_error;
 	_method = src._method;
 	_headers = src._headers;
 	_host_port = src.get_host_port();
