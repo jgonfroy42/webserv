@@ -52,14 +52,7 @@ Request	parse_chunked_body(Request request)
 		if (size_line == 0)
 			break;
 		if (i + 1 > token.size() || size_line != token[i + 1].size())
-		{
-			if (request.is_chunked_false() == false)
-				std::cout << "pas d'erreur" << std::endl;
-			else
-				std::cout << "erreur" << std::endl;
-			std::cout << "here" << std::endl;
 			return request;
-		}
 		new_body = new_body + token[i + 1];
 	}
 	//ajouter EOF donc "\r\n" ?

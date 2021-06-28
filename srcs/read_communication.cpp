@@ -159,21 +159,11 @@ int	get_data(int fd, std::vector<Server> &servers)
 	std::cout << request;
 
 	if (request.is_chunked())
-	{
 		request = parse_chunked_body(request);
-		//si request.chunked_false == true, il faut renvoyer une bad request;
-		if (request.is_chunked_false())
-		{
-			string response("404 ");
-			send(fd, response.c_str(), response.size(), 0);
-			return 1;
-		}
-	}
-	std::cout << "new body = " << request.get_body() << std::endl;
 
 	//send response
 	string response("HTTP/1.1 ");
-//	build_response(request, response, servers);
+	build_response(request, response, servers);
 
 	//send response
 	send(fd, response.c_str(), response.size(), 0);

@@ -88,6 +88,8 @@ Request &Request::operator=(Request const &rhs)
 
 	if (this != &rhs)
 	{
+		_chunked = rhs.is_chunked();
+		_chunked_error = rhs.is_chunked_false();
 		_method = rhs.get_method();
 		_headers = rhs.get_headers();
 		_body = rhs.get_body();
@@ -237,6 +239,8 @@ bool Request::is_method_valid() const
 
 bool Request::is_bad_request() const
 {
+	if (_chunked_error == true)
+		return true;
 	if (get_headers()["Host"] == string())
 		return true;
 	else
