@@ -37,7 +37,7 @@ bool type_sort(struct dirent* a, struct dirent* b)
 
 string	generate_autoindex(string path, string display_path)
 {	
-	string start = "<!doctype html>\n<html>\n    <head>\n        <style>\n            table, hr { width:800px; margin-left: 0; text-align: left; }\n        </style>\n        <title>Index of " + path +"</title>\n    </head>\n    <body>\n        <h1>Index of " + display_path + "</h1>\n        <hr/>\n        <table>";
+	string start = "<!doctype html>\n<html>\n    <head>\n        <style>\n            table, hr { width:800px; margin-left: 0; text-align: left; }\n        </style>\n        <title>Index of " + path +"</title>\n    </head>\n    <body>\n        <h1>Index of " + display_path + "</h1>\n        <hr/>\n        <table>            <tr>\n                <th><a href=\"..\">..</a></th>\n                <th></th>\n                <th></th>\n            </tr>\n";
 	
 	string end = "        </table>\n        <hr/>\n    </body>\n</html>";
 	

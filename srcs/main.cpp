@@ -13,6 +13,8 @@ int	main(int argc, char** argv)
 		servers = parsing_config(argv[1]);
 	else
 		servers = parsing_config(default_config_path);
+	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
+		std::cout << *it;
 	ports = get_ports(servers);
 	for (it = ports.begin(); it != ports.end(); ++it)
 	{

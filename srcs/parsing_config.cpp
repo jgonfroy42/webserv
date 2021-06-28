@@ -132,9 +132,5 @@ std::vector<Server>		parsing_config(const char *config_path)
 		block = find_block(config, 0);
 		id_server++;
 	}
-
-	// for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
-	// 	std::cout << *it;
-	// get_ports(servers);
 	return (servers);
 }
