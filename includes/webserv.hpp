@@ -65,7 +65,7 @@ string	get_block_type(string config, size_t start_block);
 std::vector<int>	get_ports(std::vector<Server> servers);
 
 /*autoindex.cpp*/
-void	generate_autoindex(string path, string root);
+string	generate_autoindex(string path, string display_path);
 
 /*set_communication.cpp*/
 int		init_server(t_param_server *param);

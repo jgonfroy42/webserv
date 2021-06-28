@@ -9,14 +9,13 @@ string	generate_tr(const char *path, string original_path, unsigned char d_type)
 	string date = get_last_modified(full_path.c_str());
 	if (d_type != DT_DIR)
 	{
-		// std::cout << "directory!" << std::endl;
 		std::ostringstream ss;
 		ss << get_file_size(full_path.c_str());
 		size = ss.str();
 	}
 	else
 		size = "-";
-	string tr = "            <tr>\n                <th><a href=\""+ full_path +"\">" + string(path) + "</a></th>\n                <th>" + path + "</th>\n                <th>" + size + "</th>\n            </tr>\n";
+	string tr = "            <tr>\n                <th><a href=\""+ full_path +"\">" + string(path) + "</a></th>\n                <th>" + date + "</th>\n                <th>" + size + "</th>\n            </tr>\n";
 	return (tr);
 }
 
@@ -36,11 +35,9 @@ bool type_sort(struct dirent* a, struct dirent* b)
 		return (true);
 }
 
-void	generate_autoindex(string path, string root)
-{
-	(void)root;
-	
-	string start = "<!doctype html>\n<html>\n    <head>\n        <style>\n            table, hr { width:800px; margin-left: 0; text-align: left; }\n        </style>\n        <title>Index of " + path +"</title>\n    </head>\n    <body>\n        <h1>Index of " + path + "</h1>\n        <hr/>\n        <table>";
+string	generate_autoindex(string path, string display_path)
+{	
+	string start = "<!doctype html>\n<html>\n    <head>\n        <style>\n            table, hr { width:800px; margin-left: 0; text-align: left; }\n        </style>\n        <title>Index of " + path +"</title>\n    </head>\n    <body>\n        <h1>Index of " + display_path + "</h1>\n        <hr/>\n        <table>";
 	
 	string end = "        </table>\n        <hr/>\n    </body>\n</html>";
 	
@@ -53,14 +50,6 @@ void	generate_autoindex(string path, string root)
 	if ((dir = opendir ((path).c_str())) != NULL) {
 		while ((ent = readdir (dir)) != NULL) {
 			files.push_back(ent);
-			// middle += generate_tr(ent->d_name, path, ent->d_type);
-		}
-		
-
-		for (std::vector<struct dirent*>::iterator it = files.begin(); it != files.end(); ++it)
-		{
-			int type = int((*it)->d_type);
-			std::cout << (*it)->d_name << " , " << type << std::endl;
 		}
 		
 		std::cout << std::endl << std::endl;
@@ -72,16 +61,13 @@ void	generate_autoindex(string path, string root)
 		std::cout << std::endl << std::endl;
 		std::sort(files.begin(), files.end(), type_sort);
 
-		for (std::vector<struct dirent*>::iterator it = files.begin(); it != files.end(); ++it)
-		{
-			int type = int((*it)->d_type);
-			std::cout << (*it)->d_name << " , " << type << std::endl;
-		}
+		for (std::vector<struct dirent*>::reverse_iterator it = files.rbegin(); it != files.rend(); ++it)
+			middle += generate_tr((*it)->d_name, path, (*it)->d_type);
+		
 		closedir (dir);
-		// std::cout << start << std::endl;
-		// std::cout << middle << std::endl;
-		// std::cout << end << std::endl;
-	} else {
-		std::cerr << "No dir\n";
-	}
+
+		return (start + middle + end);
+	
+	} else
+		return ("");
 }
