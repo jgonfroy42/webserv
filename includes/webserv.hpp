@@ -70,12 +70,20 @@ std::vector<size_t>	find_block(string config, size_t start_pos);
 string	get_block_type(string config, size_t start_block);
 std::vector<int>	get_ports(std::vector<Server> &servers);
 
+/*autoindex.cpp*/
+string	generate_autoindex(string path, string display_path);
+
 /*read_communication.cpp*/
+/*set_communication.cpp*/
 int		init_server(t_param_server *param);
 void	launch_server(std::vector<int> &socketID, std::vector<Server> &servers);
 int		get_data(int fd, std::vector<Server> &servers);
 
 /*chunked_request.cpp*/
 Request	parse_chunked_body(Request request);
+
+/*build_response.cpp*/
+string get_last_modified(const char *path);
+off_t get_file_size(const char *path);
 
 #endif
