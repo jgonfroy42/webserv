@@ -210,9 +210,11 @@ size_t default_response(string &response, string code)
 
 size_t response_to_GET_or_HEAD(Request &request, string &response)
 {
+	std::cout << "response to get" << std::endl;
 	off_t file_size;
 	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string())//remplacer par Celia
 	{
+	std::cout << "if" << std::endl;
 		std::cerr << "getting GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
 		std::cout << newRequest << std::endl;
@@ -220,6 +222,7 @@ size_t response_to_GET_or_HEAD(Request &request, string &response)
 	}
 	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
 	{
+	std::cout << "else if" << std::endl;
 		//opening file
 		std::ifstream stream;
 		stream.open(request.get_path().c_str(), std::ifstream::binary);
@@ -247,7 +250,10 @@ size_t response_to_GET_or_HEAD(Request &request, string &response)
 		stream.close();
 	}
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
+	{
+		std::cout << "else" << std::endl;
 		return default_response(response, NOT_FOUND);
+	}
 	return 42;
 }
 
@@ -327,10 +333,15 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	else
 		request.append_root_to_path(location.get_root());
 	delete server;
+	std::cout << "avant test" << std::endl;
+	std::cout << "apres test" << std::endl;
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect());
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
+	{
+		std::cout << "test" << std::endl;
 		return response_to_GET_or_HEAD(request, response);
+	}
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response);
 	else if (request.get_method() == "DELETE")
