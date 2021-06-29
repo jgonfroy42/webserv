@@ -1,12 +1,4 @@
 GET / HTTP/1.1
 Host: localhost:9000
 Accept: */*
-Transfer-Encoding: chunked
-
-
-3
-tut
-1
-u
-0
 

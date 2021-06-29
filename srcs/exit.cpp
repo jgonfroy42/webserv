@@ -1,8 +1,10 @@
 #include "./../includes/webserv.hpp"
 
+extern bool	end_server;
 void	sigint_handler(int signo)
 {
 	(void)signo;
-	write(1, "CTRL C\n", 7);
-	
+
+	end_server = true;
+	write(1, "Bye\n", 4);
 }

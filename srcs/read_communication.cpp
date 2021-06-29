@@ -12,6 +12,8 @@
 
 #include "./../includes/webserv.hpp"
 
+extern bool	end_server;
+
 int init_server(t_param_server *param)
 {
 	int on = 1;
@@ -68,9 +70,8 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 		fds[i].events = POLLIN;
 		++i;
 	}
-	while (1)
+	while (!end_server)
 	{
-		signal(SIGINT, sigint_handler);
 		std::cout << "Waiting for connection..." << std::endl;
 		if ((nb_readable = poll(fds, nfds, -1)) < 0)
 		{
@@ -126,7 +127,12 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 				nfds--;
 			}
 		}
+		signal(SIGINT, sigint_handler);
 	}
+	for (i = 0; i < nfds; ++i)
+		if (fds[i].fd > 0)
+			close(fds[i].fd);
+	return ;
 }
 
 int	get_data(int fd, std::vector<Server> &servers)
