@@ -250,8 +250,14 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		std::cout << newRequest << std::endl;
 		return response_to_POST(newRequest, response);
 	}
-	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0 &&
-		path_is_a_directory(request.get_path()) == false)
+	else if (path_is_a_directory(request.get_path()))
+	{
+		//autoindex on ? ->headers + generate
+		//ajout de l'index sil y a lieu
+		//sinon 404
+
+	}
+	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
 	{
 	std::cout << "else if" << std::endl;
 		//opening file
@@ -283,7 +289,7 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		// 	delete[] buffer;
 		// }
 		// stream.close();
-	}
+	}//avant essayer avec index dans config
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
 		return default_response(response, NOT_FOUND, server);
 	return 42;
