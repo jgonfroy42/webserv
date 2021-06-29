@@ -158,6 +158,19 @@ size_t response_to_POST(Request &request, string &response)
 
 	//rajouter if on est bien dans un cgi
 
+	if (!request.is_CGI())
+	{
+		add_status_line(response, CREATED); //a verifier
+		string body = request.get_body();
+		char *size_itoa;
+		size_itoa = (char *)NumberToString(body.size()).c_str();
+		add_header(response, "Date: ", get_current_date());
+		add_header(response, "Content-Length: ", string(size_itoa));
+		response += '\n';
+		response += body;
+		return 42;
+	}
+
 	int link[2];
 	char cgi_response[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC /probablement client body size
 	pipe(link);

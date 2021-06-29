@@ -163,6 +163,8 @@ int	get_data(int fd, std::vector<Server> &servers)
 
 	//send response
 	string response("HTTP/1.1 ");
+
+	std::cout << "Methode : " << request.get_method() << std::endl;
 	build_response(request, response, servers);
 
 	//send response
