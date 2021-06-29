@@ -234,6 +234,7 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 	std::cout<<"path is: "<<request.get_path() << " \n";
 	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
 	{
+	std::cout << "if" << std::endl;
 		std::cerr << "getting GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
 		std::cout << newRequest << std::endl;
@@ -241,6 +242,7 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 	}
 	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
 	{
+	std::cout << "else if" << std::endl;
 		//opening file
 		std::ifstream stream;
 		stream.open(request.get_path().c_str(), std::ifstream::binary);
