@@ -161,8 +161,8 @@ void	Location::set_methods(const string location_config)
 				this->_allowed_methods["POST"] = true;
 			else if (method == "DELETE")
 				this->_allowed_methods["DELETE"] = true;
-			else
-				error_bad_config("Bad method");
+//			else
+//				error_bad_config("Bad method");
 		}
 	}
 	else

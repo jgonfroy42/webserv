@@ -56,20 +56,6 @@ string get_last_modified(const char *path)
 	last_modification = stat_struct.st_mtime;
 	mtime = localtime(&last_modification);
 	strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", mtime);
-
-	/* 	Quizas gerer ca (via strptime ?):
-	 An origin server with a clock MUST NOT send a Last-Modified date that
-   is later than the server's time of message origination (Date).  If
-   the last modification time is derived from implementation-specific
-   metadata that evaluates to some time in the future, according to the
-   origin server's clock, then the origin server MUST replace that value
-   with the message origination date.  This prevents a future
-   modification date from having an adverse impact on cache validation. 
-
-   An origin server without a clock MUST NOT assign Last-Modified values
-   to a response unless these values were associated with the resource
-   by some other system or user with a reliable clock.   */
-
 	return string(tmbuf);
 }
 
@@ -149,6 +135,21 @@ void free_CGI_env(char **CGI_env)
 	CGI_env = NULL;
 }
 
+void add_body_from_path(string &response, string path, off_t file_size)
+{
+	char *size_itoa;
+	size_itoa = (char *)NumberToString(file_size).c_str();
+	char *buffer = new char[file_size];
+	std::ifstream stream;
+	stream.open(path.c_str(), std::ifstream::binary);
+	stream.read(buffer, sizeof(char) * file_size);
+	add_header(response, "Content-Length: ", string(size_itoa));
+	response += "\n";
+	response += string(buffer);
+	delete[] buffer;
+	stream.close();
+}
+
 size_t response_to_POST(Request &request, string &response)
 {
 	string request_body = request.get_body();
@@ -188,7 +189,7 @@ size_t response_to_POST(Request &request, string &response)
 		string body = string(cgi_str, pos);
 		char *size_itoa;
 		size_itoa = (char *)NumberToString(body.size()).c_str();
-		add_header(response, "Date: ", get_current_date());	
+		add_header(response, "Date: ", get_current_date());
 		add_header(response, "Content-Length: ", string(size_itoa));
 		size_t begin = cgi_str.find("Content-type: ");
 		size_t end = string(cgi_str, begin + 14).find('\n' | ';');
@@ -200,19 +201,38 @@ size_t response_to_POST(Request &request, string &response)
 	return 42;
 }
 
-
-size_t default_response(string &response, string code)
+bool error_page_found_and_valid(Server &server, string code)
 {
+	if (server.get_id() != -1 && server.get_error_path(code) != "" && (get_file_size(server.get_error_path(code).c_str())) >= 0)
+		return true;
+	else
+		return false;
+}
+
+size_t default_response(string &response, string code, Server &server)
+{
+	off_t file_size = -1;
 	add_status_line(response, code);
+	string server_name = string();
+	if (server.get_id() != -1 && server.get_server_names() != vec_string())
+		server_name = server.get_server_names()[0];
+	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
+	if (error_page_found_and_valid(server, code) == true)
+	{
+		std::cout << "error page selected\n";
+		file_size = get_file_size(server.get_error_path(code).c_str());
+		add_body_from_path(response, server.get_error_path(code), file_size);
+	}
 	return response.size();
 }
 
-size_t response_to_GET_or_HEAD(Request &request, string &response)
+size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server)
 {
-	std::cout << "response to get" << std::endl;
 	off_t file_size = -1;
-	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string())//remplacer par Celia
+
+	std::cout<<"path is: "<<request.get_path() << " \n";
+	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
 	{
 	std::cout << "if" << std::endl;
 		std::cerr << "getting GET cgi_request\n";
@@ -231,36 +251,37 @@ size_t response_to_GET_or_HEAD(Request &request, string &response)
 		add_status_line(response, OK); //200
 
 		//Adding headers
-		char *size_itoa;
-		size_itoa = (char *)NumberToString(file_size).c_str();
 		add_header(response, "Date: ", get_current_date());
 		add_header(response, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
-		add_header(response, "Server: ", "Our webserv"); //choix statique a confirmer
-		if (request.get_method() == "GET")		// Ajout du body
-		{
-			char *buffer = new char[file_size];
-			std::ifstream stream;
-			stream.open(request.get_path().c_str(), std::ifstream::binary);
-			stream.read(buffer, sizeof(char) * file_size);
-			add_header(response, "Content-Length: ", string(size_itoa));
-			response += "\n";
-			response += string(buffer);
-			delete[] buffer;
-		}
-		stream.close();
+		string server_name = string();
+		if (server.get_id() != -1 && server.get_server_names() != vec_string())
+			server_name = server.get_server_names()[0];
+		add_header(response, "Server: ", server_name);
+
+		//Adding body
+		if (request.get_method() == "GET")
+			add_body_from_path(response, request.get_path(), file_size);
+		// {
+		// 	char *buffer = new char[file_size];
+		// 	std::ifstream stream;
+		// 	stream.open(request.get_path().c_str(), std::ifstream::binary);
+		// 	stream.read(buffer, sizeof(char) * file_size);
+		// 	add_header(response, "Content-Length: ", string(size_itoa));
+		// 	response += "\n";
+		// 	response += string(buffer);
+		// 	delete[] buffer;
+		// }
+		// stream.close();
 	}
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
-	{
-		std::cout << "else" << std::endl;
-		return default_response(response, NOT_FOUND);
-	}
+		return default_response(response, NOT_FOUND, server);
 	return 42;
 }
 
-Server *choose_server(Request &request, std::vector<Server> &servers)
+Server choose_server(Request &request, std::vector<Server> &servers)
 {
 	bool port_found = false;
-	Server *chosen_server = new Server(servers[0]);
+	Server chosen_server = Server(servers[0]);
 	for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
 		if (it->get_port_str() == request.get_port())
@@ -268,13 +289,11 @@ Server *choose_server(Request &request, std::vector<Server> &servers)
 			if (port_found == false)
 			{
 				port_found = true;
-				delete chosen_server;
-				chosen_server = new Server(*it);
+				chosen_server = Server(*it);
 			}
 			if (it->get_host() == request.get_host())
 			{
-				delete chosen_server;
-				chosen_server = new Server(*it);
+				chosen_server = Server(*it);
 				return (chosen_server);
 			}
 		}
@@ -297,9 +316,13 @@ Location choose_location(string path, vec_location locations)
 	return Location();
 }
 
-size_t redirected_response(string &response, pair_str_str redirect)
+size_t redirected_response(string &response, pair_str_str redirect, Server &server)
 {
 	add_status_line(response, redirect.first);
+	string server_name = string();
+	if (server.get_server_names() != vec_string())
+		server_name = server.get_server_names()[0];
+	add_header(response, "Server: ", server_name); //choix statique a confirmer
 	add_header(response, "Date: ", get_current_date());
 	add_header(response, "Location: ", redirect.second);
 	return response.size();
@@ -315,38 +338,27 @@ bool redirection_found(Location &location)
 
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
+	Server server = Server();
 	if (request.is_bad_request())
-		return default_response(response, BAD_REQUEST); //400
-	Server *server = choose_server(request, servers);
+		return default_response(response, BAD_REQUEST, server); //400
+	server = choose_server(request, servers);
 	// std::cout << "\n----SELECTED SERVER IS:"
 	// 		  << server;
-	Location location = choose_location(request.get_path(), server->get_locations());
+	Location location = choose_location(request.get_path(), server.get_locations());
 	// std::cout << "----SELECTED LOCATION IS:"
 	// 		  << location;
-	if (!location.method_is_allowed(request.get_method()))
-	{
-		delete server;
-		return default_response(response, NOT_ALLOWED); //ou 403?
-	}
-	if (location.is_empty() || !location.root_is_set())
-		request.append_root_to_path(server->get_root());
-	else
-		request.append_root_to_path(location.get_root());
-	delete server;
-	std::cout << "avant test" << std::endl;
-	std::cout << "apres test" << std::endl;
+	if (location.method_is_allowed(request.get_method()) == false)
+		return default_response(response, NOT_ALLOWED, server);
+//	request.translate_path();
 	if (redirection_found(location))
-		return redirected_response(response, location.get_redirect());
+		return redirected_response(response, location.get_redirect(), server);
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
-	{
-		std::cout << "test" << std::endl;
-		return response_to_GET_or_HEAD(request, response);
-	}
+		return response_to_GET_or_HEAD(request, response, server);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response);
 	else if (request.get_method() == "DELETE")
-		return 42;									//a implementer
-	return default_response(response, NOT_ALLOWED); //405
+		return 42;											//a implementer
+	return default_response(response, NOT_ALLOWED, server); //405
 }
 
 /* response headers:
