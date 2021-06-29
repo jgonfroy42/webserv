@@ -21,6 +21,7 @@
 # include <fstream>
 # include <vector>
 # include <poll.h>
+# include <signal.h>
 
 //Toujours utile ?
 # include <sys/ioctl.h>
@@ -85,5 +86,9 @@ Request	parse_chunked_body(Request request);
 /*build_response.cpp*/
 string get_last_modified(const char *path);
 off_t get_file_size(const char *path);
+
+
+/*exit.cpp*/
+void	sigint_handler(int signal);
 
 #endif
