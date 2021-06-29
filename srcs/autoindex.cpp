@@ -47,8 +47,8 @@ string	generate_autoindex(string path, string display_path)
 
 	DIR *dir;
 	struct dirent *ent;
-	if ((dir = opendir ((path).c_str())) != NULL) {
-		while ((ent = readdir (dir)) != NULL) {
+	if ((dir = opendir((path).c_str())) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
 			files.push_back(ent);
 		}
 		
@@ -64,7 +64,7 @@ string	generate_autoindex(string path, string display_path)
 		for (std::vector<struct dirent*>::reverse_iterator it = files.rbegin(); it != files.rend(); ++it)
 			middle += generate_tr((*it)->d_name, path, (*it)->d_type);
 		
-		closedir (dir);
+		closedir(dir);
 
 		return (start + middle + end);
 	

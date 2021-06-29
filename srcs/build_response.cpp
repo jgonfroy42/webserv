@@ -336,6 +336,18 @@ bool redirection_found(Location &location)
 		return true;
 }
 
+size_t response_to_DELETE(Request &request, string &response, Server &server)
+{
+	if(remove(request.get_path().c_str()) != 0 )
+		default_response(response, NOT_FOUND, server);
+	else
+	{
+		add_status_line(response, "204");
+		add_header(response, "Date: ", get_current_date());
+	}
+	return (42); // a clean later
+}
+
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	Server server = Server();
@@ -357,7 +369,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response);
 	else if (request.get_method() == "DELETE")
-		return 42;											//a implementer
+		return response_to_DELETE(request, response, server);
 	return default_response(response, NOT_ALLOWED, server); //405
 }
 

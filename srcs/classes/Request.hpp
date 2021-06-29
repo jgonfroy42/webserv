@@ -36,7 +36,7 @@ public:
 
 	//SETTERS:
 	void append_root_to_path(string root);
-	void translate_path(Server &server, Location &location);
+	// void translate_path(Server &server, Location &location);
 	void set_unchunked_body(string new_body);
 	void set_chunked_error(bool error);
 
