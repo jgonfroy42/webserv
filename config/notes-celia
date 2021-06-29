@@ -1,9 +1,0 @@
-nc - C localhost 8080
-GET / HTTP/1.1
-Host: yooo
-
-curl -v -X GET http://localhost:8080
-
-siege -vb http://localhost:8080
-
-check path if contains another space
