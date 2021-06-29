@@ -6,6 +6,7 @@
 
 Server::Server()
 {
+	_id = -1;
 }
 
 Server::Server(Server const &src)
@@ -85,7 +86,7 @@ std::vector<Location> Server::get_locations() const
 std::map<string, string> Server::get_error_pages() const
 { return (this->_error_pages); }
 
-string Server::get_error_page(string error_code) const
+string Server::get_error_path(string error_code) const
 {
 	if ( this->_error_pages.find(error_code) == this->_error_pages.end() )
 		return ("");

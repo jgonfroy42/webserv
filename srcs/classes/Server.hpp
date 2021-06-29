@@ -41,7 +41,7 @@ class Server
 		string		get_root() const;
 		int			get_client_max_body_size() const;
 		vec_string	get_index() const;
-		string		get_error_page(string error_code) const;
+		string		get_error_path(string error_code) const;
 		map_str_str get_error_pages() const;
 		vec_location get_locations() const;
 		Location	server_contains_location(string path) const;
