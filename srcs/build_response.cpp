@@ -63,7 +63,7 @@ off_t get_file_size(const char *path)
 {
 	struct stat stat_struct;
 
-	if (stat(path, &stat_struct) != 0)
+	if (stat(path, &stat_struct) != 0) //could not open file
 	{
 		std::cerr << strerror(errno) << " for path " << path << std::endl; //pertinence ?
 		return -1;
@@ -187,9 +187,9 @@ size_t response_to_POST(Request &request, string &response)
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
+		add_header(response, "Date: ", get_current_date());
 		char *size_itoa;
 		size_itoa = (char *)NumberToString(body.size()).c_str();
-		add_header(response, "Date: ", get_current_date());
 		add_header(response, "Content-Length: ", string(size_itoa));
 		size_t begin = cgi_str.find("Content-type: ");
 		size_t end = string(cgi_str, begin + 14).find('\n' | ';');
@@ -218,6 +218,8 @@ size_t default_response(string &response, string code, Server &server)
 		server_name = server.get_server_names()[0];
 	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
+	if (code == TEMPORARY_REDIRECT)
+		add_header(response, "Location: ", request.get_tranlated_path());
 	if (error_page_found_and_valid(server, code) == true)
 	{
 		std::cout << "error page selected\n";
@@ -229,6 +231,8 @@ size_t default_response(string &response, string code, Server &server)
 
 bool path_is_a_directory(string path)
 {
+	if (path[path.size() -1] != '/')//nginx considers a / ends directory paths
+		return false;
 	DIR *dir;
 	bool ret = false;
 	if ((dir = opendir(path.c_str())) != NULL)
@@ -237,39 +241,120 @@ bool path_is_a_directory(string path)
 	return ret;
 }
 
-size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server)
+bool autoindex_is_on_and_valid(Request &request, Location &location)
+{
+	if (location.is_empty() == false && location.auto_index_is_on())
+		return true;
+	else
+		return false;
+}
+
+size_t directory_listing_response(Request &request, string &response, Server &server)
+{
+	add_status_line(response, OK); //200
+
+	//Adding headers
+	add_header(response, "Date: ", get_current_date());
+	string server_name = string();
+	if (server.get_id() != -1 && server.get_server_names() != vec_string())
+		server_name = server.get_server_names()[0];
+	add_header(response, "Server: ", server_name);
+
+	string body = generate_autoindex(request.get_translated_path(), request.get_path());
+	char *size_itoa;
+	size_itoa = (char *)NumberToString(body.size()).c_str();
+	add_header(response, "Content-Length: ", string(size_itoa));
+
+	response += '\n';
+	response += body;
+	return 42;
+}
+
+bool file_path_is_invalid(string path)
+{
+	if(stat(path.c_str(), NULL) != 0)
+		return true;
+	else
+		return false;	
+}
+
+bool index_page_found(Request &request, Server &server, Location &location)
+{
+	string path = request.get_translated_path();
+	string index;
+	if (location.is_empty())
+	{
+
+	}
+	while(file_path_is_invalid(string()))
+	{
+
+	}
+
+}
+
+size_t redirected_response(string &response, pair_str_str redirect, Server &server)
+{
+	add_status_line(response, redirect.first);
+	string server_name = string();
+	if (server.get_server_names() != vec_string())
+		server_name = server.get_server_names()[0];
+	add_header(response, "Server: ", server_name); //choix statique a confirmer
+	add_header(response, "Date: ", get_current_date());
+	add_header(response, "Location: ", redirect.second);
+	return response.size();
+}
+
+size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server, Location &location)
 {
 	off_t file_size = 0;
 
-	std::cout<<"path is: "<<request.get_path() << " \n";
-	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
+	std::cout << "In GET --- path is: "<< request.get_path() << "\n";
+	std::cout << "translated path is: "<< request.get_translated_path() << "\n";
+	if (request.get_translated_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
 	{
-	std::cout << "if" << std::endl;
+		std::cout << "if" << std::endl;
 		std::cerr << "getting GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
 		std::cout << newRequest << std::endl;
 		return response_to_POST(newRequest, response);
 	}
-	else if (path_is_a_directory(request.get_path()))
-	{
-		//autoindex on ? ->headers + generate
-		//ajout de l'index sil y a lieu
-		//sinon 404
+	if (path_is_a_directory(request.get_translated_path())
+		&& index_page_found(request, server, location) == true)
+		return default_response(response, )
+	is
+		&& autoindex_is_on_and_valid(request, location))
+		return directory_listing_response(request, response, server);
+	
+	
+	// else if (path_is_a_directory(request.get_translated_path()))
+	// if (file_path_is_invalid(request))
+	// 	append_index_page(request, )
+	// {
 
 	}
-	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
+
+	// {
+
+	// 	return default_response(response, NOT_FOUND, server);
+	// 	//autoindex on ? ->headers + generate
+	// 	//ajout de l'index sil y a lieu
+	// 	//sinon 404
+
+	// }
+	if ((file_size = get_file_size(request.get_translated_path().c_str())) >= 0 && path_is_a_directory(request.get_translated_path()) == false)
 	{
-	std::cout << "else if" << std::endl;
+		std::cout << "else if" << std::endl;
 		//opening file
 		std::ifstream stream;
-		stream.open(request.get_path().c_str(), std::ifstream::binary);
+		stream.open(request.get_translated_path().c_str(), std::ifstream::binary);
 
 		//status line
 		add_status_line(response, OK); //200
 
 		//Adding headers
 		add_header(response, "Date: ", get_current_date());
-		add_header(response, "Last-Modified: ", get_last_modified(request.get_path().c_str()));
+		add_header(response, "Last-Modified: ", get_last_modified(request.get_translated_path().c_str()));
 		string server_name = string();
 		if (server.get_id() != -1 && server.get_server_names() != vec_string())
 			server_name = server.get_server_names()[0];
@@ -277,19 +362,8 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 
 		//Adding body
 		if (request.get_method() == "GET")
-			add_body_from_path(response, request.get_path(), file_size);
-		// {
-		// 	char *buffer = new char[file_size];
-		// 	std::ifstream stream;
-		// 	stream.open(request.get_path().c_str(), std::ifstream::binary);
-		// 	stream.read(buffer, sizeof(char) * file_size);
-		// 	add_header(response, "Content-Length: ", string(size_itoa));
-		// 	response += "\n";
-		// 	response += string(buffer);
-		// 	delete[] buffer;
-		// }
-		// stream.close();
-	}//avant essayer avec index dans config
+			add_body_from_path(response, request.get_translated_path(), file_size);
+	}	 //avant essayer avec index dans config
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
 		return default_response(response, NOT_FOUND, server);
 	return 42;
@@ -333,17 +407,6 @@ Location choose_location(string path, vec_location locations)
 	return Location();
 }
 
-size_t redirected_response(string &response, pair_str_str redirect, Server &server)
-{
-	add_status_line(response, redirect.first);
-	string server_name = string();
-	if (server.get_server_names() != vec_string())
-		server_name = server.get_server_names()[0];
-	add_header(response, "Server: ", server_name); //choix statique a confirmer
-	add_header(response, "Date: ", get_current_date());
-	add_header(response, "Location: ", redirect.second);
-	return response.size();
-}
 
 bool redirection_found(Location &location)
 {
@@ -352,7 +415,6 @@ bool redirection_found(Location &location)
 	else
 		return true;
 }
-
 
 void translate_path(Request &request, Server &server, Location &location)
 {
@@ -366,12 +428,12 @@ void translate_path(Request &request, Server &server, Location &location)
 	// {
 	// 	/* code */
 	// }
-	
+
 	// {
 	// 	append_root_to_path(server.get_root());
 	// }
 	// else
-	// 	append_root_to_path(location.get_root());	
+	// 	append_root_to_path(location.get_root());
 }
 
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
@@ -391,7 +453,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect(), server);
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
-		return response_to_GET_or_HEAD(request, response, server);
+		return response_to_GET_or_HEAD(request, response, server, location);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response);
 	else if (request.get_method() == "DELETE")

@@ -40,6 +40,7 @@
 # define OK					"200"
 # define CREATED			"201"
 # define NO_CONTENT			"204"
+# define TEMPORARY_REDIRECT "307"
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
 # define NOT_ALLOWED		"405"

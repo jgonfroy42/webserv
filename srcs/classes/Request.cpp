@@ -259,7 +259,7 @@ void Request::append_root_to_path(string root)
 		if (root.size() >= 1 && root[0] == '/')
 			root.erase(0, 1);
 	}
-	_path = root + '/' + _path;
+	_translated_path = root + '/' + _path;
 }
 
 void Request::set_unchunked_body(string new_body)
