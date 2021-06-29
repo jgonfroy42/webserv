@@ -211,7 +211,7 @@ size_t default_response(string &response, string code)
 size_t response_to_GET_or_HEAD(Request &request, string &response)
 {
 	std::cout << "response to get" << std::endl;
-	off_t file_size;
+	off_t file_size = -1;
 	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string())//remplacer par Celia
 	{
 	std::cout << "if" << std::endl;
