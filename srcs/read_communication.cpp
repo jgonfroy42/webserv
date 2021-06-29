@@ -6,7 +6,7 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/29 16:37:26 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/29 19:19:14 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,9 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 	}
 	while (!end_server)
 	{
+		signal(SIGINT, sigint_handler);
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds, -1)) < 0)
+		if ((nb_readable = poll(fds, nfds, -1)) < 0 && !end_server)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -127,7 +128,6 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 				nfds--;
 			}
 		}
-		signal(SIGINT, sigint_handler);
 	}
 	for (i = 0; i < nfds; ++i)
 		if (fds[i].fd > 0)
