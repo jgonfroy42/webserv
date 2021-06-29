@@ -227,9 +227,19 @@ size_t default_response(string &response, string code, Server &server)
 	return response.size();
 }
 
+bool path_is_a_directory(string path)
+{
+	DIR *dir;
+	bool ret = false;
+	if ((dir = opendir(path.c_str())) != NULL)
+		ret = true;
+	closedir(dir);
+	return ret;
+}
+
 size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server)
 {
-	off_t file_size = -1;
+	off_t file_size = 0;
 
 	std::cout<<"path is: "<<request.get_path() << " \n";
 	if (request.get_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
@@ -240,7 +250,8 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		std::cout << newRequest << std::endl;
 		return response_to_POST(newRequest, response);
 	}
-	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0)
+	else if ((file_size = get_file_size(request.get_path().c_str())) >= 0 &&
+		path_is_a_directory(request.get_path()) == false)
 	{
 	std::cout << "else if" << std::endl;
 		//opening file
@@ -336,6 +347,27 @@ bool redirection_found(Location &location)
 		return true;
 }
 
+
+void translate_path(Request &request, Server &server, Location &location)
+{
+	string root;
+	if (location.is_empty() == true || location.root_is_set() == false)
+		root = server.get_root();
+	else
+		root = location.get_root();
+	request.append_root_to_path(root);
+	// if (location.is_empty() || )
+	// {
+	// 	/* code */
+	// }
+	
+	// {
+	// 	append_root_to_path(server.get_root());
+	// }
+	// else
+	// 	append_root_to_path(location.get_root());	
+}
+
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	Server server = Server();
@@ -349,7 +381,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	// 		  << location;
 	if (location.method_is_allowed(request.get_method()) == false)
 		return default_response(response, NOT_ALLOWED, server);
-//	request.translate_path();
+	translate_path(request, server, location);
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect(), server);
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")

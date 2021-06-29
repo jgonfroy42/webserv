@@ -262,26 +262,6 @@ void Request::append_root_to_path(string root)
 	_path = root + '/' + _path;
 }
 
-// void Request::translate_path(Server &server, Location &location)
-// {
-// 	string root;
-// 	if (location.is_empty() == true || location.root_is_set() == false)
-// 		root = server.get_root();
-// 	else
-// 		root = location.get_root();
-// 	append_root_to_path(root);
-// 	if (location.is_empty() || )
-// 	{
-// 		/* code */
-// 	}
-	
-// 	{
-// 		append_root_to_path(server.get_root());
-// 	}
-// 	else
-// 		append_root_to_path(location.get_root());	
-// }
-
 void Request::set_unchunked_body(string new_body)
 {
 	_body = new_body;

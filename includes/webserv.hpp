@@ -21,6 +21,7 @@
 # include <fstream>
 # include <vector>
 # include <poll.h>
+# include <dirent.h>
 
 //Toujours utile ?
 # include <sys/ioctl.h>
