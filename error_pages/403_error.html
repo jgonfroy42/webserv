@@ -1,113 +1,28 @@
 <!doctype html>
 <html>
-
 <head>
+	<title>403 - Forbidden</title>
 	<script src="https://kit.fontawesome.com/559dfb4a00.js" crossorigin="anonymous"></script>
 	<style>
-		#content {
-			width: 800px;
-			margin: auto;
-			margin-top: 200px;
-		}
-
-		#dialog {
-			width: 800px;
-			position: absolute;
-			color: #141414;
-			font-family: Arial;
-			background-color: #eaeadd;
-			border: 5px solid #0554e3;
-			-webkit-border-top-left-radius: 10px;
-			-webkit-border-top-right-radius: 10px;
-			-moz-border-radius-topleft: 10px;
-			-moz-border-radius-topright: 10px;
-			border-top-left-radius: 10px;
-			border-top-right-radius: 10px;
-			-webkit-box-shadow: 8px 13px 13px -2px rgba(0,0,0,0.4); 
-			box-shadow: 8px 13px 13px -2px rgba(0,0,0,0.4);
-		}
-
-		#gandalf {
-			width: 480px;
-			margin:auto;
-			margin-top: 150px;
-			text-align: center;
-		}
-
-		#header {
-			background-color: #0554e3;
-			font-size: 26px;
-			color:white;
-			padding:10px
-		}
-
-		.button:hover {
-			cursor: pointer;
-		}
-
-		#body {
-			padding: 20px;
-			text-align: center;
-		}
-
-		#cross_button {
-			float: right;
-			background-color: #ea775d;
-			border: 1px solid white;
-			border-radius: 5px;
-			padding: 5px 10px 3px 10px;
-			margin-top: -7px;
-		}
-
-		#cross_button:hover {
-			background-color: #d15336;
-		}
-
-		#big_image {
-			font-weight: 500;
-			font-size: 50px;
-		}
-
-		#big_image i {
-			display: inline-block;
-			font-size: 42px;
-		}
-
-		p {
-			font-family: 'Courier New', monospace;
-			font-size: 18px;
-		}
-
-		#leave_button {
-			margin-top: 40px;
-			display: inline-block;
-			border: 1px solid black;
-			padding: 2px;
-			border-radius: 5px;
-			background-color:#3494fb;
-		}
-		#leave_button > div {
-			background-color: white;
-			padding: 8px 80px;
-			border: 1px dashed black;
-		}
-
-		#leave_button:hover {
-			background-color: #0554e3;
-		}
-
+		#content { width: 800px; margin: auto; margin-top: 200px; }
+		#dialog { width: 800px; position: absolute; color: #141414; font-family: Arial; background-color: #eaeadd; border: 5px solid #0554e3; -webkit-border-top-left-radius: 10px; -webkit-border-top-right-radius: 10px; -moz-border-radius-topleft: 10px; -moz-border-radius-topright: 10px; border-top-left-radius: 10px; border-top-right-radius: 10px; -webkit-box-shadow: 8px 13px 13px -2px rgba(0,0,0,0.4); box-shadow: 8px 13px 13px -2px rgba(0,0,0,0.4); }
+		#gandalf { width: 480px; margin:auto; margin-top: 150px; text-align: center; }
+		#header { background-color: #0554e3; font-size: 26px; color:white; padding:10px; }
+		.button:hover { cursor: pointer; }
+		#body { padding: 20px; text-align: center; }
+		#cross_button { float: right; background-color: #ea775d; border: 1px solid white; border-radius: 5px; padding: 5px 10px 3px 10px; margin-top: -7px; }
+		#cross_button:hover { background-color: #d15336; }
+		#big_image { font-weight: 500; font-size: 50px; }
+		#big_image i { display: inline-block; font-size: 42px; }
+		p { font-family: 'Courier New', monospace; font-size: 18px; }
+		#leave_button { margin-top: 40px; display: inline-block; border: 1px solid black; padding: 2px; border-radius: 5px; background-color:#3494fb; }
+		#leave_button > div { background-color: white; padding: 8px 80px; border: 1px dashed black; }
+		#leave_button:hover { background-color: #0554e3; }
 		@media (max-width: 800px) {
-
-			#content {
-				width: auto;
-			}
-
-			#back_button {
-				margin-left: 0;
-			}
+			#content { width: auto; }
+			#back_button { margin-left: 0; }
 		}
 	</style>
-	<title>403 - Forbidden</title>
 </head>
 
 <body>
@@ -130,11 +45,7 @@
 	<script>
 		function toggle_dialog() {
 		  var x = document.getElementById("dialog");
-		  if (x.style.display === "none") {
-			x.style.display = "block";
-		  } else {
-			x.style.display = "none";
-		  }
+		  if (x.style.display === "none") { x.style.display = "block"; } else { x.style.display = "none"; }
 		}
 		</script>
 </body>

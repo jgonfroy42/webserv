@@ -1,234 +1,63 @@
 <!doctype html>
 <html>
-
 <head>
+	<title>404 - Not found</title>
 	<script src="https://kit.fontawesome.com/559dfb4a00.js" crossorigin="anonymous"></script>
 	<style>
-		#content {
-			width: 1000px;
-			margin: auto;
-			margin-top: 250px;
-			position: relative;
-			z-index: 3;
-			color: white;
-			font-family: Arial;
-			font-size: 20px;
-			padding: 20px;
+		#content { width: 1000px; margin: auto; margin-top: 250px; position: relative;z-index: 3;color: white;font-family: Arial;font-size: 20px;padding: 20px;}
+		h1 { font-size: 45px; width: 100%; font-family: Tahoma; }
+		#text { display: inline-block; margin-top: 50px; }
+		#text p { margin-bottom: 50px; }
+		#back_button { border: 1px solid rgb(255, 255, 255, 0.5); padding: 20px 70px 20px 40px; color: white; text-decoration: none; margin-top: 100px !important; margin-left: 30px;}
+		#back_button i { display: inline-block; position: absolute; font-size: 30px; margin-left: 10px; margin-top: -5px; }
+		.button-fill-left { box-shadow: inset 0px 0px 0px white; transition: all 0.5s !important; }
+		.button-fill-left:hover { color: black !important; box-shadow: inset 350px 0px 0px white; }
+		.button-fill-left:hover .fa-rocket { animation: rocket 3s cubic-bezier(.36, .07, .57, .99); }
+		@keyframes rocket { 
+			0% { transform: translate(0, 0); opacity: 1; }
+			5% { transform: translate(2px, 0); opacity: 1; }
+			10% { transform: translate(1px, -2px); opacity: 1; }
+			15% { transform: translate(3px, -1px); opacity: 1; }
+			20% { transform: translate(2px, -3px); opacity: 1; }
+			25% { transform: translate(4px, -2px); opacity: 1; }
+			50% { transform: translate(10px, -10px); opacity: 0; }
+			51% { transform: translate(-10px, 10px); opacity: 0; }
+			100% { transform: translate(0, 0); opacity: 1; }
 		}
-
-		h1 {
-			font-size: 45px;
-			width: 100%;
-			font-family: Tahoma;
-		}
-
-		#text {
-			display: inline-block;
-			margin-top: 50px;
-		}
-
-		#text p {
-			margin-bottom: 50px;
-		}
-
-		#back_button {
-			border: 1px solid rgb(255, 255, 255, 0.5);
-			padding: 20px 70px 20px 40px;
-			color: white;
-			text-decoration: none;
-			margin-top: 100px !important;
-			margin-left: 30px;
-		}
-
-		#back_button i {
-			display: inline-block;
-			position: absolute;
-			font-size: 30px;
-			margin-left: 10px;
-			margin-top: -5px;
-		}
-
-		.button-fill-left {
-			box-shadow: inset 0px 0px 0px white;
-			transition: all 0.5s !important;
-			
-		}
-
-		.button-fill-left:hover {
-			color: black !important;
-			box-shadow: inset 350px 0px 0px white;
-		}
-
-		.button-fill-left:hover .fa-rocket {
-			animation: rocket 3s cubic-bezier(.36, .07, .57, .99);
-		}
-
-		@keyframes rocket {
-			0% {
-				transform: translate(0, 0);
-				opacity: 1;
-			}
-
-			5% {
-				transform: translate(2px, 0);
-				opacity: 1;
-			}
-
-			10% {
-				transform: translate(1px, -2px);
-				opacity: 1;
-			}
-
-			15% {
-				transform: translate(3px, -1px);
-				opacity: 1;
-			}
-
-			20% {
-				transform: translate(2px, -3px);
-				opacity: 1;
-			}
-
-			25% {
-				transform: translate(4px, -2px);
-				opacity: 1;
-			}
-
-			50% {
-				transform: translate(10px, -10px);
-				opacity: 0;
-			}
-
-			51% {
-				transform: translate(-10px, 10px);
-				opacity: 0;
-			}
-
-			100% {
-				transform: translate(0, 0);
-				opacity: 1;
-			}
-		}
-
-
-		#big_image {
-			float: right;
-			font-weight: 500;
-			font-size: 280px;
-			margin-top: -50px;
-		}
-
-		#big_image i {
-			width: 250px;
-			display: inline-block;
-			font-size: 250px;
-			margin-right: -20px;
-			-webkit-animation: slide-bl 1s 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-			animation: slide-bl 1s 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-		}
-
+		#big_image { float: right; font-weight: 500; font-size: 280px; margin-top: -50px; }
+		#big_image i { width: 250px; display: inline-block; font-size: 250px; margin-right: -20px; -webkit-animation: slide-bl 1s 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; animation: slide-bl 1s 1s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; }
 		@-webkit-keyframes slide-bl {
-			0% {
-				-webkit-transform: translateY(-200px) translateX(100px);
-				transform: translateY(-200px) translateX(100px);
-				opacity: 0;
-			}
-
-			100% {
-				-webkit-transform: translateY(0) translateX(0);
-				transform: translateY(0) translateX(0);
-				opacity: 1;
-			}
+			0% { -webkit-transform: translateY(-200px) translateX(100px); transform: translateY(-200px) translateX(100px); opacity: 0; }
+			100% { -webkit-transform: translateY(0) translateX(0); transform: translateY(0) translateX(0); opacity: 1; }
 		}
-
 		@keyframes slide-bl {
-			0% {
-				-webkit-transform: translateY(-200px) translateX(100px);
-				transform: translateY(-200px) translateX(100px);
-				opacity: 0;
-			}
-
-			100% {
-				-webkit-transform: translateY(0) translateX(0);
-				transform: translateY(0) translateX(0);
-				opacity: 1;
-			}
+			0% { -webkit-transform: translateY(-200px) translateX(100px); transform: translateY(-200px) translateX(100px); opacity: 0; }
+			100% { -webkit-transform: translateY(0) translateX(0); transform: translateY(0) translateX(0); opacity: 1; }
 		}
-
-		.stars,
-		.twinkling,
-		.clouds {
-			position: absolute;
-			display: block;
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			width: 100%;
-			height: 100%;
-		}
-
-		.stars {
-			z-index: 0;
-			background: #000 url('https://image.ibb.co/mjnygo/stars.png') repeat top center;
-		}
-
-		.twinkling {
-			z-index: 1;
-			background: transparent url('https://image.ibb.co/ir1DE8/twinkling.png') repeat top center;
-			animation: move-twink-back 200s linear infinite;
-		}
-
-		.clouds {
-			z-index: 2;
-			background: transparent url('https://image.ibb.co/bT4N7T/clouds.png') repeat top center;
-			animation: move-clouds-back 200s linear infinite;
-		}
-
+		.stars, .twinkling, .clouds { position: absolute; display: block; top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%; }
+		.stars { z-index: 0; background: #000 url('https://image.ibb.co/mjnygo/stars.png') repeat top center; }
+		.twinkling { z-index: 1; background: transparent url('https://image.ibb.co/ir1DE8/twinkling.png') repeat top center; animation: move-twink-back 200s linear infinite; }
+		.clouds { z-index: 2; background: transparent url('https://image.ibb.co/bT4N7T/clouds.png') repeat top center; animation: move-clouds-back 200s linear infinite; }
 		@media (max-width: 1040px) {
-			#big_image {
-				float: initial;
-			}
-
-			#content {
-				width: auto;
-				text-align: center;
-			}
-
-			#back_button {
-				margin-left: 0;
-			}
+			#big_image { float: initial; }
+			#content { width: auto; text-align: center; }
+			#back_button { margin-left: 0; }
 		}
-
 		@keyframes move-twink-back {
-			from {
-				background-position: 0 0;
-			}
-
-			to {
-				background-position: -10000px 5000px;
-			}
+			from { background-position: 0 0; }
+			to { background-position: -10000px 5000px; }
 		}
-
 		@keyframes move-clouds-back {
-			from {
-				background-position: 0 0;
-			}
-
-			to {
-				background-position: 10000px 0;
-			}
+			from { background-position: 0 0; }
+			to { background-position: 10000px 0; }
 		}
 	</style>
-	<title>404 - Not found</title>
 </head>
 
 <body>
 	<div id="content">
 		<h1>Oops ! This place is empty.</h1>
-		<div id="big_image">
-			4<i class="fas fa-meteor"></i>4
-		</div>
+		<div id="big_image">4<i class="fas fa-meteor"></i>4</div>
 		<div id="text">
 			<p>The page you are looking for got lost in space ...</p>
 			<a href="/" id="back_button" class="button-fill-left">Wanna get back to earth ? <i class="fa fa-rocket"
@@ -239,5 +68,4 @@
 	<div class="twinkling"></div>
 	<div class="clouds"></div>
 </body>
-
 </html>

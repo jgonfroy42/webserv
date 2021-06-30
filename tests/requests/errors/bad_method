@@ -1,0 +1,17 @@
+HOLA / HTTP/1.1
+Host: localhost:80
+
+HTTP/1.1 405 Not Allowed
+Server: nginx/1.14.0 (Ubuntu)
+Date: Wed, 30 Jun 2021 17:50:11 GMT
+Content-Type: text/html
+Content-Length: 182
+Connection: keep-alive
+
+<html>
+<head><title>405 Not Allowed</title></head>
+<body bgcolor="white">
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>nginx/1.14.0 (Ubuntu)</center>
+</body>
+</html>
