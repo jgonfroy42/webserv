@@ -317,7 +317,12 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 
 	std::cout << "In GET --- path is: "<< request.get_path() << "\n";
 	std::cout << "translated path is: "<< request.get_translated_path() << "\n";
-	string index;
+//	string index;
+	if (path_is_a_directory(request.get_translated_path(), true)
+		&& autoindex_is_on_and_valid(request, location))
+		return directory_listing_response(request, response, server);
+	else if (path_is_a_directory(request.get_translated_path(), true))
+		append_index_to_path(request, server, location);
 	if (request.get_translated_path() == "srcs/cgi/postform.php" && request.get_query_string() != string()) //remplacer par Celia
 	{
 		std::cerr << "getting GET cgi_request\n";
@@ -325,11 +330,6 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		std::cout << newRequest << std::endl;
 		return response_to_POST(newRequest, response);
 	}
-	if (path_is_a_directory(request.get_translated_path(), true)
-		&& autoindex_is_on_and_valid(request, location))
-		return directory_listing_response(request, response, server);
-	else if (path_is_a_directory(request.get_translated_path(), true))
-		append_index_to_path(request, server, location);
 	if ((file_size = get_file_size(request.get_translated_path().c_str())) >= 0
 		&& path_is_a_directory(request.get_translated_path(), false) == false)
 	{
