@@ -157,7 +157,8 @@ size_t CGI_response(Request &request, string &response, Location &location)
 	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
 
 	int link[2];
-	char cgi_response[8000]; // TAILLE RANDOM ICI, FAUDRA METTRE UN VRAI TRUC /probablement client body size
+	char cgi_response[8000];
+	memset(cgi_response, 0, 8000);
 	pipe(link);
 	if (fork() == 0)
 	{
