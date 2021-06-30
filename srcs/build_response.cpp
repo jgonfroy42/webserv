@@ -209,27 +209,29 @@ bool error_page_found_and_valid(Server &server, string code)
 		return false;
 }
 
-size_t default_response(string &response, string code, Server &server)
+size_t error_response(string &response, string code, Server &server)
 {
 	off_t file_size = -1;
 	add_status_line(response, code);
 	string server_name = string();
+	string body_path;
 	if (server.get_id() != -1 && server.get_server_names() != vec_string())
 		server_name = server.get_server_names()[0];
 	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
-	if (error_page_found_and_valid(server, code) == true)
-	{
-		std::cout << "error page selected\n";
-		file_size = get_file_size(server.get_error_path(code).c_str());
-		add_body_from_path(response, server.get_error_path(code), file_size);
-	}
+	if (server.get_id() != -1 && error_page_found_and_valid(server, code) == true)
+		body_path = server.get_error_path(code);
+	else
+		body_path = "error_pages/" + code + "_error.html";
+	file_size = get_file_size(body_path.c_str());
+	add_body_from_path(response, body_path, file_size);
+
 	return response.size();
 }
 
-bool path_is_a_directory(string path)
+bool path_is_a_directory(string path, bool slash_needed)
 {
-	if (path[path.size() -1] != '/')//nginx considers a / ends directory paths
+	if (slash_needed && path[path.size() -1] != '/')//nginx considers a / ends directory paths
 		return false;
 	DIR *dir;
 	bool ret = false;
@@ -241,7 +243,7 @@ bool path_is_a_directory(string path)
 
 bool autoindex_is_on_and_valid(Request &request, Location &location)
 {
-	if (path_is_a_directory(request.get_translated_path())
+	if (path_is_a_directory(request.get_translated_path(), true)
 		&& location.is_empty() == false && location.auto_index_is_on())
 		return true;
 	else
@@ -269,30 +271,6 @@ size_t directory_listing_response(Request &request, string &response, Server &se
 	return 42;
 }
 
-bool file_path_is_invalid(string path)
-{
-	
-	if(stat(path.c_str(), NULL) != 0)
-		return true;
-	else
-		return false;	
-}
-
-string index_page_found(Request &request, Server &server, Location &location)
-{
-	string path = request.get_translated_path();
-	string index;
-	if (location.is_empty())
-	{
-
-	}
-	while(file_path_is_invalid(string()))
-	{
-
-	}
-	return string();
-}
-
 size_t redirected_response(string &response, pair_str_str redirect, Server &server)
 {
 	add_status_line(response, redirect.first);
@@ -303,6 +281,33 @@ size_t redirected_response(string &response, pair_str_str redirect, Server &serv
 	add_header(response, "Date: ", get_current_date());
 	add_header(response, "Location: ", redirect.second);
 	return response.size();
+}
+
+void append_index_to_path(Request &request, Server &server, Location &location)
+{
+	vec_string indexes = vec_string();
+	string new_path = request.get_translated_path();
+	if (location.is_empty() == false && location.get_index() != vec_string())
+		indexes = location.get_index();
+	else if (server.get_index() != vec_string())
+		indexes = server.get_index();
+	if (indexes == vec_string())
+		new_path += "index.html";
+	else
+	{
+		for(size_t i = 0; i < indexes.size(); i++)
+		{
+			new_path = request.get_translated_path() + indexes[i];
+			std::cout << "In append_index, new path is: "<< new_path << '\n';
+			if (get_file_size(new_path.c_str()) >= 0)
+			{
+				std::cout << "Valid file path found" << '\n';
+				break;
+			}
+		} 
+	}
+	request.set_translated_path(new_path);
+	std::cout << "After appending index, new path is: "<< request.get_translated_path() << '\n';
 }
 
 
@@ -320,13 +325,13 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		std::cout << newRequest << std::endl;
 		return response_to_POST(newRequest, response);
 	}
-	if (path_is_a_directory(request.get_translated_path())
-		&& autoindex_is_on_and_valid(request, location) == false
-		&& (index = index_page_found(request, server, location)) != string())
-		return redirected_response(response, pair_str_str(TEMPORARY_REDIRECT, index), server);
-	else if (autoindex_is_on_and_valid(request, location))
+	if (path_is_a_directory(request.get_translated_path(), true)
+		&& autoindex_is_on_and_valid(request, location))
 		return directory_listing_response(request, response, server);
-	if ((file_size = get_file_size(request.get_translated_path().c_str())) >= 0)
+	else if (path_is_a_directory(request.get_translated_path(), true))
+		append_index_to_path(request, server, location);
+	if ((file_size = get_file_size(request.get_translated_path().c_str())) >= 0
+		&& path_is_a_directory(request.get_translated_path(), false) == false)
 	{
 		//opening file
 		std::ifstream stream;
@@ -348,7 +353,7 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 			add_body_from_path(response, request.get_translated_path(), file_size);
 	}	 //avant essayer avec index dans config
 	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
-		return default_response(response, NOT_FOUND, server);
+		return error_response(response, NOT_FOUND, server);
 	return 42;
 }
 
@@ -407,31 +412,21 @@ void translate_path(Request &request, Server &server, Location &location)
 	else
 		root = location.get_root();
 	request.append_root_to_path(root);
-	// if (location.is_empty() || )
-	// {
-	// 	/* code */
-	// }
-
-	// {
-	// 	append_root_to_path(server.get_root());
-	// }
-	// else
-	// 	append_root_to_path(location.get_root());
 }
 
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	Server server = Server();
 	if (request.is_bad_request())
-		return default_response(response, BAD_REQUEST, server); //400
+		return error_response(response, BAD_REQUEST, server); //400
 	server = choose_server(request, servers);
-	// std::cout << "\n----SELECTED SERVER IS:"
-	// 		  << server;
+	 std::cout << "\n----SELECTED SERVER IS:"
+	 		  << server;
 	Location location = choose_location(request.get_path(), server.get_locations());
-	// std::cout << "----SELECTED LOCATION IS:"
-	// 		  << location;
+	 std::cout << "----SELECTED LOCATION IS:"
+	 		  << location;
 	if (location.method_is_allowed(request.get_method()) == false)
-		return default_response(response, NOT_ALLOWED, server);
+		return error_response(response, NOT_ALLOWED, server);
 	translate_path(request, server, location);
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect(), server);
@@ -441,7 +436,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 		return response_to_POST(request, response);
 	else if (request.get_method() == "DELETE")
 		return 42;											//a implementer
-	return default_response(response, NOT_ALLOWED, server); //405
+	return error_response(response, NOT_ALLOWED, server); //405
 }
 
 /* response headers:

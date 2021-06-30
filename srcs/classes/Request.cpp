@@ -250,7 +250,10 @@ bool Request::is_bad_request() const
 void Request::append_root_to_path(string root)
 {
 	if (root == string())
+	{
+		_translated_path = "./" + _path;
 		return;
+	}
 	while (root.size() >= 1 && root[0] == ('.' | '/'))
 	{
 		//deletion of the "./" part at the beginning of root
@@ -260,6 +263,11 @@ void Request::append_root_to_path(string root)
 			root.erase(0, 1);
 	}
 	_translated_path = root + '/' + _path;
+}
+
+void Request::set_translated_path(string new_path)
+{
+	_translated_path = new_path;
 }
 
 void Request::set_unchunked_body(string new_body)

@@ -36,6 +36,7 @@ public:
 
 	//SETTERS:
 	void append_root_to_path(string root);
+	void set_translated_path(string new_path);
 	void set_unchunked_body(string new_body);
 	void set_chunked_error(bool error);
 
