@@ -58,6 +58,12 @@ bool	Location::method_is_allowed(const string method) const
 string Location::get_cgi_path() const
 { return (this->_cgi_path); }
 
+string Location::get_cgi_extension() const
+{ return (this->_cgi_extension); }
+
+string Location::get_upload_path() const
+{ return (this->_upload_path); }
+
 pair		Location::get_redirect() const 
 { return (this->_redirect); }
 
@@ -161,8 +167,6 @@ void	Location::set_methods(const string location_config)
 				this->_allowed_methods["POST"] = true;
 			else if (method == "DELETE")
 				this->_allowed_methods["DELETE"] = true;
-//			else
-//				error_bad_config("Bad method");
 		}
 	}
 	else
@@ -221,6 +225,28 @@ void	Location::set_cgi_path(const string location_config)
 	}
 	else
 		this->_cgi_path = "";
+	
+	cgi_line = get_configuration(location_config, "cgi_extension", true);
+	if (cgi_line != "")
+	{
+		size_t split_pos = cgi_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (cgi_extension)");
+		this->_cgi_extension = cgi_line.substr(split_pos + 1);
+	}
+	else
+		this->_cgi_extension = "";
+	
+	cgi_line = get_configuration(location_config, "upload", true);
+	if (cgi_line != "")
+	{
+		size_t split_pos = cgi_line.find(' ');
+		if (split_pos == string::npos)
+			error_bad_config("Invalid instruction. (upload_path)");
+		this->_upload_path = cgi_line.substr(split_pos + 1);
+	}
+	else
+		this->_upload_path = "";
 }
 
 
@@ -253,6 +279,10 @@ std::ostream &			operator<<( std::ostream & o, Location const & i )
 	o << "    Autoindex:\t" << i.auto_index_is_on() << std::endl;
 	if (i.get_cgi_path() != "")
 		o << "    Cgi:\t" << i.get_cgi_path() << std::endl;
+	if (i.get_cgi_extension() != "")
+		o << "    Cgi ext:\t" << i.get_cgi_extension() << std::endl;
+	if (i.get_upload_path() != "")
+		o << "    Upload:\t" << i.get_upload_path() << std::endl;
 	if (i.get_redirect().first != "")
 		o << "    Redirect:\t" << i.get_redirect().first << " " << i.get_redirect().second << std::endl;
 	o << "    Available methods:";
