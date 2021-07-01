@@ -213,14 +213,6 @@ int Request::parse_start_line(string start_line)
 		it_end++;
 	if (*it_begin && *it_end)
 		_protocol = string(it_begin, it_end);
-	// if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
-	// { //NB: CGI PATH EN STATIQUE
-	// 	len = 0;
-	// 	pos += string("cgi-bin/myscript.cgi").size() + 1; //NB: CGI PATH EN STATIQUE
-	// 	while (start_line[pos + len] && start_line[pos + len] != ' ' && start_line[pos + len] != '?')
-	// 		len++;
-	// 	_path = string(start_line, pos, len);
-	// }
 	return 0;
 }
 

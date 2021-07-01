@@ -297,22 +297,24 @@ size_t upload_response(Request &request, string &response, Location &location)
 	return 42;
 }
 
+size_t chunked_response(Request &request, string &response)
+{
+		add_status_line(response, CREATED); //a verifier
+		string body = request.get_body();
+		char *size_itoa;
+		size_itoa = (char *)NumberToString(body.size()).c_str();
+		add_header(response, "Date: ", get_current_date());
+		add_header(response, "Content-Length: ", string(size_itoa));
+		response += '\n';
+		response += body;
+		return 42;
+}
+
 size_t response_to_POST(Request &request, string &response, Server &server, Location &location)
 {
-	// PARTIE JEANNE AVEC IF A CHANGER
-	// if (!request.is_CGI())
-	// {
-	// 	add_status_line(response, CREATED); //a verifier
-	// 	string body = request.get_body();
-	// 	char *size_itoa;
-	// 	size_itoa = (char *)NumberToString(body.size()).c_str();
-	// 	add_header(response, "Date: ", get_current_date());
-	// 	add_header(response, "Content-Length: ", string(size_itoa));
-	// 	response += '\n';
-	// 	response += body;
-	// 	return 42;
-	// }
-	if (request_is_cgi(request, location))
+	if (request.is_chunked())
+		return chunked_response(request, response);
+	else if (request_is_cgi(request, location))
 		return CGI_response(request, response, location);
 	else if (request_is_to_upload_a_file_and_valid(request, location))
 		return upload_response(request, response, location);
