@@ -21,6 +21,8 @@
 # include <fstream>
 # include <vector>
 # include <poll.h>
+# include <dirent.h>
+# include <signal.h>
 
 //Toujours utile ?
 # include <sys/ioctl.h>
@@ -39,9 +41,11 @@
 # define OK					"200"
 # define CREATED			"201"
 # define NO_CONTENT			"204"
+# define TEMPORARY_REDIRECT "307"
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
 # define NOT_ALLOWED		"405"
+# define TOO_LARGE			"413"
 # define NOT_IMPLEMENTED	"501"
 
 typedef struct s_param_server
@@ -85,5 +89,9 @@ Request	parse_chunked_body(Request request);
 /*build_response.cpp*/
 string get_last_modified(const char *path);
 off_t get_file_size(const char *path);
+
+
+/*exit.cpp*/
+void	sigint_handler(int signal);
 
 #endif

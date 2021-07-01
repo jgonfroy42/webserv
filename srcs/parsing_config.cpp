@@ -88,7 +88,7 @@ std::vector<Server>		parsing_config(const char *config_path)
 	if (config_file.fail())
 	{
 		std::cerr << "Error: " << strerror(errno) << std::endl;
-		exit (1);
+		return (std::vector<Server>());
 	}
 
 	// Reading file
@@ -98,7 +98,7 @@ std::vector<Server>		parsing_config(const char *config_path)
 	if (config.empty())
 	{
 		std::cerr << "Error: Couldn't read configuration file.\n";
-		exit (1);
+		return (std::vector<Server>());
 	}
 	
 	// Transforming all new line and tabulations into spaces
@@ -116,7 +116,10 @@ std::vector<Server>		parsing_config(const char *config_path)
 
 	// Checking validity by number of brackets
 	if (!valid_count_brackets(config))
-		error_bad_config("Invalid number of brackets.");
+	{
+		std::cerr << "Error: Bad configuration file.\n\t-> " << "Invalid number of brackets." << std::endl;
+		return (std::vector<Server>());
+	}
 
 	std::vector<Server> servers;
 	std::vector<size_t> block = find_block(config, 0);
@@ -124,9 +127,19 @@ std::vector<Server>		parsing_config(const char *config_path)
 	while (block.empty() == false)
 	{
 		if (get_block_type(config, block[0]) != "server")
-			error_bad_config("Not a server.");
+		{
+			std::cerr << "Error: Bad configuration file.\n\t-> " << "Not a server." << std::endl;
+			return (std::vector<Server>());
+		}
 		size_t start_block = config.find("server", 0) + 7;
-		Server new_server(config.substr(start_block + 2, block[1] - start_block - 2), id_server);
+		Server new_server;
+		try {
+			new_server = Server(config.substr(start_block + 2, block[1] - start_block - 2), id_server);
+		} catch (string msg)
+		{
+			std::cerr << "Error: Bad configuration file.\n\t-> " << msg << std::endl;
+			return (std::vector<Server>());
+		}
 		servers.push_back(new_server);
 		config.erase(start_block - 6, block[1] - start_block + 7);
 		block = find_block(config, 0);

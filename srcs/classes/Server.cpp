@@ -17,8 +17,12 @@ Server::Server(Server const &src)
 Server::Server(string server_config, int id)
 {
 	this->_id = id;
-	set_host_port(server_config);
-	set_server_names(server_config);
+	// try {
+		set_host_port(server_config);
+		set_server_names(server_config);
+	// } catch (string msg)
+	// { throw(msg); }
+	
 	set_locations(&server_config);
 	set_root(server_config);
 	set_indexes(server_config);
@@ -114,31 +118,34 @@ string	Server::get_configuration(const string server_config, const string label,
 	size_t label_pos = server_config.find(label);
 
 	if (label_pos == string::npos && optional == false)
-		error_bad_config(label + " missing.");
+		throw string("Missing " + label);
 	else if (label_pos == string::npos && optional == true)
 		return ("");
 
 	size_t end_line_pos = server_config.find(";", label_pos);
 	if (end_line_pos == string::npos)
-		error_bad_config("Missing ; at end of line.");
+		throw string("Missing ; at end of line");
+		// error_bad_config("Missing ; at end of line.");
 
 	string line = server_config.substr(label_pos, end_line_pos - label_pos);
 	
 	// Check si doublon
 	if (server_config.find(label, end_line_pos + 1) != string::npos)
-		error_bad_config("Double " + label + ".");
+		throw string("Double " + label + ".");
+		// error_bad_config("Double " + label + ".");
 	return (line);
 }
 
 void	Server::set_host_port(const string server_config)
 {
-	string port_line = get_configuration(server_config, "listen", false);
+	string port_line;
+	port_line = get_configuration(server_config, "listen", false);
 	size_t split_pos = port_line.find(' ');
 	if (split_pos == string::npos)
-		error_bad_config("Invalid instruction. (listen)");
+		throw string("Invalid instruction. (listen)");
 	size_t separator_pos = port_line.find(':', split_pos);
 	if (separator_pos == string::npos)
-		error_bad_config("Missing port.");
+		throw string("Missing port.");
 	this->_host = port_line.substr(split_pos + 1, separator_pos - split_pos - 1);
 	this->_host_port = port_line.substr(split_pos + 1);
 	this->_port_str = port_line.substr(separator_pos + 1);
@@ -159,8 +166,8 @@ void Server::set_server_names(const string server_config)
 		else
 			this->_server_names.push_back(name_line.substr(split_pos + 1, name_line.find(' ', split_pos + 1) - split_pos - 1));
 	}
-	if (this->_server_names.empty() == true)
-		error_bad_config("Invalid instruction. (server name)");
+	if (this->_server_names.empty() == true || this->_server_names.at(0) == "")
+		throw string("Invalid instruction. (server name)");
 }
 
 void Server::set_error_pages(const string server_config)
@@ -170,7 +177,7 @@ void Server::set_error_pages(const string server_config)
 	{
 		size_t end_line_pos = server_config.find(";", error_page_pos);
 		if (end_line_pos == string::npos)
-			error_bad_config("Missing ; at end of line.");
+			throw string("Missing ; at end of line.");
 		string line = server_config.substr(error_page_pos, end_line_pos - error_page_pos);
 		size_t start_path = line.find_last_of(" ");
 		string path = line.substr(start_path + 1);
@@ -192,7 +199,7 @@ void Server::set_locations(string *server_config)
 	while (location.empty() == false)
 	{
 		if (get_block_type(*server_config, location[0]) != "location")
-			error_bad_config("Invalid block.");
+			throw string("Invalid block.");
 		size_t start_location = (*server_config).find("location", 0) + 7;
 		Location new_location((*server_config).substr(start_location + 2, location[1] - start_location - 2), id_location);
 		this->_locations.push_back(new_location);
@@ -209,8 +216,10 @@ void	Server::set_root(const string server_config)
 	{
 		size_t  split_pos = root_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (root)");
+			throw string("Invalid instruction. (root) espace");
 		this->_root = root_line.substr(split_pos + 1);
+		if (this->_root == "")
+			throw string("Invalid instruction. (root) empty");
 	}
 }
 
@@ -227,8 +236,8 @@ void	Server::set_indexes(const string server_config)
 			else
 				this->_index.push_back(index_line.substr(split_pos + 1, index_line.find(' ', split_pos + 1) - split_pos - 1));
 		}
-		if (this->_index.empty() == true)
-			error_bad_config("Invalid instruction. (index)");
+		if (this->_index.empty() == true || this->_index.at(0) == "")
+			throw string("Invalid instruction. (index)");
 	}
 }
 
@@ -238,10 +247,10 @@ void	Server::set_body_max_size(const string server_config)
 	if (max_size_line != "")
 	{
 		size_t split_pos = max_size_line.find(' ');
-		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (client max body size)");
+		if (split_pos == string::npos || split_pos + 1 == max_size_line.size())
+			throw string("Invalid instruction. (client max body size)");
 		std::istringstream iss (max_size_line.substr(split_pos + 1));
-		iss >> this->_client_max_body_size; // = stoi(max_size_line.substr(split_pos + 1));
+		iss >> this->_client_max_body_size;
 	}
 	else 
 		this->_client_max_body_size = 8000;

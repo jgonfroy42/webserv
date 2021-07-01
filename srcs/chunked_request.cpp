@@ -1,5 +1,18 @@
 #include "./../includes/webserv.hpp"
 
+bool	is_hexa(std::string str)
+{
+	std::string::iterator	it;
+
+	for (it = str.begin(); it != str.end(); ++it)
+	{
+		if (!isdigit(*it) && !(*it > 96 && *it < 103))
+			return false;
+	}
+	return true;
+}
+
+//base base 10;
 unsigned long ft_stoi(std::string str)
 {
 	int num;
@@ -45,10 +58,9 @@ Request	parse_chunked_body(Request request)
 	{
 		if (i % 2 != 0)
 			continue;
-		for (size_t j = 0; j < token[i].size(); ++j)
-			if (!(isdigit(token[i][j])))
+		if (is_hexa(token[i]) == false)
 				return request;
-		size_line = ft_stoi(token[i]);
+		size_line = strtol(token[i].c_str(), NULL, 16);
 		if (size_line == 0)
 			break;
 		if (i + 1 > token.size() || size_line != token[i + 1].size())
