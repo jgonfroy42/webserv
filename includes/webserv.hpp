@@ -43,6 +43,7 @@
 # define BAD_REQUEST		"400"
 # define NOT_FOUND			"404"
 # define NOT_ALLOWED		"405"
+# define TOO_LARGE			"413"
 # define NOT_IMPLEMENTED	"501"
 
 typedef struct s_param_server

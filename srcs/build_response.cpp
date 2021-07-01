@@ -369,6 +369,9 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	server = choose_server(request, servers);
 	// std::cout << "\n----SELECTED SERVER IS:"
 	// 		  << server;
+	std::string size_body = request.get_headers()["Content-Length"];
+	if (size_body != string() && strtol(size_body.c_str(), NULL, 10) > server.get_client_max_body_size())
+		return default_response(response, TOO_LARGE, server); //413
 	Location location = choose_location(request.get_path(), server.get_locations());
 	// std::cout << "----SELECTED LOCATION IS:"
 	// 		  << location;
