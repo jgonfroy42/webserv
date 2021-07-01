@@ -168,7 +168,7 @@ size_t CGI_response(Request &request, string &response, Location &location)
 		char **input = (char **)malloc(sizeof(char *) * 3);
 
 		input[0] = strdup("/usr/bin/php-cgi");
-		input[1] = strdup(location.get_cgi_path().c_str()); //a modifier
+		input[1] = strdup(location.get_cgi_path().c_str()); 
 		input[2] = NULL;
 		execve("/usr/bin/php-cgi", input, CGI_env);
 		free(input[0]);
@@ -239,6 +239,19 @@ size_t error_response(string &response, string code, Server &server)
 
 size_t response_to_POST(Request &request, string &response, Server &server, Location &location)
 {
+
+	// if (!request.is_CGI())
+	// {
+	// 	add_status_line(response, CREATED); //a verifier
+	// 	string body = request.get_body();
+	// 	char *size_itoa;
+	// 	size_itoa = (char *)NumberToString(body.size()).c_str();
+	// 	add_header(response, "Date: ", get_current_date());
+	// 	add_header(response, "Content-Length: ", string(size_itoa));
+	// 	response += '\n';
+	// 	response += body;
+	// 	return 42;
+	// }
 	if (request_is_cgi(request, location))
 		return CGI_response(request, response, location);
 	else
@@ -427,6 +440,18 @@ void translate_path(Request &request, Server &server, Location &location)
 	request.append_root_to_path(root);
 }
 
+size_t response_to_DELETE(Request &request, string &response, Server &server)
+{
+	if(remove(request.get_path().c_str()) != 0 )
+		error_response(response, NOT_FOUND, server);
+	else
+	{
+		add_status_line(response, "204");
+		add_header(response, "Date: ", get_current_date());
+	}
+	return (42); // a clean later
+}
+
 size_t build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	Server server = Server();
@@ -447,9 +472,11 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 		return response_to_GET_or_HEAD(request, response, server, location);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response, server, location);
-	else if (request.get_method() == "DELETE")
-		return 42;										  //a implementer
-	return error_response(response, NOT_ALLOWED, server); //405
+	else if (request.get_method() == "DELETE")				  //a implementer
+		return response_to_DELETE(request, response, server);
+	else
+		return error_response(response, NOT_ALLOWED, server); //405
+	return 42;						
 }
 
 /* response headers:

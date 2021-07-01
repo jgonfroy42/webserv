@@ -6,11 +6,13 @@
 /*   By: jgonfroy <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/05/21 14:32:11 by jgonfroy          #+#    #+#             */
-/*   Updated: 2021/06/25 13:01:29 by jgonfroy         ###   ########.fr       */
+/*   Updated: 2021/06/29 19:19:14 by jgonfroy         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../includes/webserv.hpp"
+
+extern bool	end_server;
 
 int init_server(t_param_server *param)
 {
@@ -68,10 +70,11 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 		fds[i].events = POLLIN;
 		++i;
 	}
-	while (1)
+	while (!end_server)
 	{
+		signal(SIGINT, sigint_handler);
 		std::cout << "Waiting for connection..." << std::endl;
-		if ((nb_readable = poll(fds, nfds, -1)) < 0)
+		if ((nb_readable = poll(fds, nfds, -1)) < 0 && !end_server)
 		{
 			std::cerr << "Error: cannot select" << std::endl;
 			return;
@@ -126,6 +129,10 @@ void launch_server(std::vector<int> &socketID, std::vector<Server> &servers)
 			}
 		}
 	}
+	for (i = 0; i < nfds; ++i)
+		if (fds[i].fd > 0)
+			close(fds[i].fd);
+	return ;
 }
 
 int	get_data(int fd, std::vector<Server> &servers)
@@ -163,6 +170,8 @@ int	get_data(int fd, std::vector<Server> &servers)
 
 	//send response
 	string response("HTTP/1.1 ");
+
+	std::cout << "Methode : " << request.get_method() << std::endl;
 	build_response(request, response, servers);
 
 	//send response
