@@ -24,6 +24,8 @@ class Location
 		bool		auto_index_is_on() const;
 		pair		get_redirect() const;
 		string		get_cgi_path() const;
+		string		get_cgi_extension() const;
+		string		get_upload_path() const;
 		bool		is_empty() const;
 		bool		is_cgi() const;
 		bool		root_is_set() const;
@@ -38,6 +40,8 @@ class Location
 		pair			_redirect;
 		string			_cgi_path;
 		bool			_root_set;
+		string			_cgi_extension;
+		string			_upload_path;
 
 		void	set_root(const string location_config);
 		void	set_indexes(const string location_config);
