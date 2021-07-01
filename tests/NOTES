@@ -1,0 +1,27 @@
+NOTES :
+
+- rajouter headers
+	Date: Wed, 30 Jun 2021 17:53:49 GMT
+	Content-Type: text/html
+	Connection: close ????
+- quand bad request server name vide
+- default error pages
+- verbose serveur ?
+
+
+
+QUE FAIT NGINX ?
+GET /
+sans protocole, marche quand meme (200 OK + index nginx)
+
+GET / h
+404 not found
+
+GET / H 
+400 Bad Request
+
+GET / HTTP
+400 Bad Request
+
+bad header
+il ignore
