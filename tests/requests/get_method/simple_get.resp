@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Date: Thu, 01 Jul 2021 22:14:12 GMT
+Last-Modified: Wed, 30 Jun 2021 11:33:37 GMT
+Server: webserv
+Content-Length: 179
+
+<!doctype html>
+<html>
+  <head>
+    <title>Welcome to index.html !</title>
+  </head>
+  <body>
+          <h1>Celia is the best</h1>
+        <p>This is an example paragraph.</p>
+  </body>
+</html>

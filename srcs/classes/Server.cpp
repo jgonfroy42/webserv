@@ -216,10 +216,10 @@ void	Server::set_root(const string server_config)
 	{
 		size_t  split_pos = root_line.find(' ');
 		if (split_pos == string::npos)
-			throw string("Invalid instruction. (root) espace");
+			throw string("Invalid instruction. (root)");
 		this->_root = root_line.substr(split_pos + 1);
 		if (this->_root == "")
-			throw string("Invalid instruction. (root) empty");
+			throw string("Invalid instruction. (root)");
 	}
 }
 
