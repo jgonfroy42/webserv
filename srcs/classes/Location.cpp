@@ -11,7 +11,7 @@ Location::Location(const string location_config, int id)
 	// Checking if not another block inside location block
 	size_t start_block = location_config.find('{', 0);
 	if (location_config.find('{', start_block + 1) != string::npos)
-		error_bad_config("Forbidden block inside location block.");
+		throw string("Forbidden block inside location block.");
 	
 	this->_id = id;
 	this->_path = location_config.substr(0, location_config.find(" "));
@@ -95,19 +95,19 @@ string	Location::get_configuration(const string server_config, const string labe
 	size_t label_pos = server_config.find(label);
 
 	if (label_pos == string::npos && optional == false)
-		error_bad_config(label + " missing.");
+		throw string(label + " missing.");
 	else if (label_pos == string::npos && optional == true)
 		return ("");
 
 	size_t end_line_pos = server_config.find(";", label_pos);
 	if (end_line_pos == string::npos)
-		error_bad_config("Missing ; at end of line.");
+		throw string("Missing ; at end of line.");
 
 	string line = server_config.substr(label_pos, end_line_pos - label_pos);
 	
 	// Check si doublon
 	if (server_config.find(label, end_line_pos + 1) != string::npos)
-		error_bad_config("Double " + label + ".");
+		throw string("Double " + label + ".");
 	return (line);
 }
 
@@ -119,8 +119,10 @@ void	Location::set_root(const string location_config)
 		_root_set = true;
 		size_t split_pos = root_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (root)");
+			throw string("Invalid instruction. (location root)");
 		this->_root = root_line.substr(split_pos + 1);
+		if (this->_root == "")
+			throw string("Invalid instruction. (location root)");
 	}
 	else
 		_root_set = false;
@@ -140,8 +142,8 @@ void	Location::set_indexes(const string location_config)
 			else
 				this->_index.push_back(index_line.substr(split_pos + 1, index_line.find(' ', split_pos + 1) - split_pos - 1));
 		}
-		if (this->_index.empty() == true)
-			error_bad_config("Invalid instruction. (index)");
+		if (this->_index.empty() == true || this->_index.at(0) == "")
+			throw string("Invalid instruction. (location index)");
 	}
 }
 
@@ -184,7 +186,7 @@ void	Location::set_autoindex(const string location_config)
 	{
 		size_t split_pos = auto_index_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (autoindex)");
+			throw string("Invalid instruction. (autoindex)");
 		string boolean = auto_index_line.substr(split_pos + 1);
 		if (boolean == "on")
 			this->_auto_index = true;
@@ -202,12 +204,14 @@ void	Location::set_redirection(const string location_config)
 	{
 		size_t split_pos = redirect_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (redirect)");
+			throw string("Invalid instruction. (redirect)");
 		size_t second_split_pos = redirect_line.find(' ', split_pos + 1);
 		if (second_split_pos == string::npos)
-			error_bad_config("Invalid instruction. (redirect)");
+			throw string("Invalid instruction. (redirect)");
 		this->_redirect.first = redirect_line.substr(split_pos + 1, second_split_pos - split_pos - 1);
 		this->_redirect.second = redirect_line.substr(second_split_pos + 1);
+		if (this->_redirect.first == "" || this->_redirect.second == "")
+			throw string("Invalid instruction. (redirect)");
 	}
 	else
 		_redirect = pair_str_str(string(), string());
@@ -220,8 +224,10 @@ void	Location::set_cgi_path(const string location_config)
 	{
 		size_t split_pos = cgi_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (cgi_path)");
+			throw string("Invalid instruction. (cgi_path)");
 		this->_cgi_path = cgi_line.substr(split_pos + 1);
+		if (this->_cgi_path == "")
+			throw string("Invalid instruction. (cgi_path)");
 	}
 	else
 		this->_cgi_path = "";
@@ -231,8 +237,10 @@ void	Location::set_cgi_path(const string location_config)
 	{
 		size_t split_pos = cgi_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (cgi_extension)");
+			throw string("Invalid instruction. (cgi_extension)");
 		this->_cgi_extension = cgi_line.substr(split_pos + 1);
+		if (this->_cgi_extension == "")
+			throw string("Invalid instruction. (cgi_extension)");
 	}
 	else
 		this->_cgi_extension = "";
@@ -242,8 +250,10 @@ void	Location::set_cgi_path(const string location_config)
 	{
 		size_t split_pos = cgi_line.find(' ');
 		if (split_pos == string::npos)
-			error_bad_config("Invalid instruction. (upload_path)");
+			throw string("Invalid instruction. (upload_path)");
 		this->_upload_path = cgi_line.substr(split_pos + 1);
+		if (this->_upload_path == "")
+			throw string("Invalid instruction. (upload_path)");
 	}
 	else
 		this->_upload_path = "";
