@@ -42,8 +42,6 @@ Request::Request(const char *request_array)
 
 Request::Request(const Request &src)
 {
-	std::cout << "copy constructor" << std::endl;
-	//	_CGI_env = src._CGI_env;
 	_chunked = src._chunked;
 	_chunked_error = src._chunked_error;
 	_method = src._method;
@@ -54,12 +52,10 @@ Request::Request(const Request &src)
 	_body = src._body;
 	_path = src._path;
 	_translated_path = src._translated_path;
-	std::cout << "end of copy constructor" << std::endl;
 }
 
 Request::Request(Request const &src, string body)
 {
-	std::cout << "copy constructor with new body" << std::endl;
 	_method = src._method;
 	_headers = src._headers;
 	_host_port = src.get_host_port();
@@ -76,7 +72,6 @@ Request::Request(Request const &src, string body)
 
 Request::~Request()
 {
-	//delete _body;
 }
 
 /*
@@ -218,18 +213,18 @@ int Request::parse_start_line(string start_line)
 		it_end++;
 	if (*it_begin && *it_end)
 		_protocol = string(it_begin, it_end);
-	if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
-	{ //NB: CGI PATH EN STATIQUE
-		len = 0;
-		pos += string("cgi-bin/myscript.cgi").size() + 1; //NB: CGI PATH EN STATIQUE
-		while (start_line[pos + len] && start_line[pos + len] != ' ' && start_line[pos + len] != '?')
-			len++;
-		_path = string(start_line, pos, len);
-	}
+	// if ((pos = start_line.find("cgi-bin/myscript.cgi")) != string::npos)
+	// { //NB: CGI PATH EN STATIQUE
+	// 	len = 0;
+	// 	pos += string("cgi-bin/myscript.cgi").size() + 1; //NB: CGI PATH EN STATIQUE
+	// 	while (start_line[pos + len] && start_line[pos + len] != ' ' && start_line[pos + len] != '?')
+	// 		len++;
+	// 	_path = string(start_line, pos, len);
+	// }
 	return 0;
 }
 
-bool Request::is_method_valid() const
+bool Request::is_method_valid() const // A SUPPRIMER
 {
 	if (_method == "GET" || _method == "HEAD" || _method == "POST" || _method == "DELETE")
 		return true;
@@ -249,8 +244,12 @@ bool Request::is_bad_request() const
 
 void Request::append_root_to_path(string root)
 {
+
 	if (root == string())
+	{
+		_translated_path = "./" + _path;
 		return;
+	}
 	while (root.size() >= 1 && root[0] == ('.' | '/'))
 	{
 		//deletion of the "./" part at the beginning of root
@@ -259,28 +258,13 @@ void Request::append_root_to_path(string root)
 		if (root.size() >= 1 && root[0] == '/')
 			root.erase(0, 1);
 	}
-	_path = root + '/' + _path;
+	_translated_path = root + '/' + _path;
 }
 
-// void Request::translate_path(Server &server, Location &location)
-// {
-// 	string root;
-// 	if (location.is_empty() == true || location.root_is_set() == false)
-// 		root = server.get_root();
-// 	else
-// 		root = location.get_root();
-// 	append_root_to_path(root);
-// 	if (location.is_empty() || )
-// 	{
-// 		/* code */
-// 	}
-	
-// 	{
-// 		append_root_to_path(server.get_root());
-// 	}
-// 	else
-// 		append_root_to_path(location.get_root());	
-// }
+void Request::set_translated_path(string new_path)
+{
+	_translated_path = new_path;
+}
 
 void Request::set_unchunked_body(string new_body)
 {
@@ -292,7 +276,7 @@ void Request::set_chunked_error(bool error)
 	_chunked_error = error;
 }
 
-bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
+bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE PROBABLEMENT A SUPPRIMER
 {
 	if (_method == "GET" && _URI.find("cgi-bin/myscript.cgi") != string::npos)
 		return true;
@@ -300,12 +284,12 @@ bool Request::is_CGI() const //NB: CGI PATH EN STATIQUE
 		return false;
 }
 
-bool	Request::is_chunked() const
+bool Request::is_chunked() const
 {
 	return _chunked;
 }
 
-bool	Request::is_chunked_false() const
+bool Request::is_chunked_false() const
 {
 	return _chunked_error;
 }
