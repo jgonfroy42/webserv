@@ -64,7 +64,7 @@ off_t get_file_size(const char *path)
 
 	if (stat(path, &stat_struct) != 0) //could not open file
 	{
-		std::cerr << strerror(errno) << " for path " << path << std::endl; //pertinence ?
+		std::cerr << strerror(errno) << " for path " << path << std::endl;
 		return -1;
 	}
 	else
@@ -86,7 +86,7 @@ std::vector<string> convert_CGI_string_to_vector(string CGI_string)
 	return pairs;
 }
 
-char *clean_CGI_env_token(string token) //a voir si on fait plus propre ou osef= a voir si on fouille un peu dans la syntaxe des bodys envoyes par POST ou pas
+char *clean_CGI_env_token(string token)
 {
 	char *shiny_token;
 
@@ -167,7 +167,7 @@ size_t CGI_response(Request &request, string &response, Location &location)
 		char **input = (char **)malloc(sizeof(char *) * 3);
 
 		input[0] = strdup("/usr/bin/php-cgi");
-		input[1] = strdup(location.get_cgi_path().c_str()); 
+		input[1] = strdup(location.get_cgi_path().c_str());
 		input[2] = NULL;
 		execve("/usr/bin/php-cgi", input, CGI_env);
 		free(input[0]);
@@ -239,9 +239,67 @@ size_t error_response(string &response, string code, Server &server)
 	return response.size();
 }
 
+bool path_is_a_directory(string path, bool slash_needed)
+{
+	if (slash_needed && path[path.size() - 1] != '/') //nginx considers a / ends directory paths
+		return false;
+	DIR *dir;
+	bool ret = false;
+	if ((dir = opendir(path.c_str())) != NULL)
+		ret = true;
+	closedir(dir);
+	return ret;
+}
+
+string path_where_to_upload_file(Request &request, Location &location)
+{
+	if (location.is_empty())
+		return string();
+	string new_file_path = request.get_translated_path();
+	return new_file_path;
+}
+
+bool request_is_to_upload_a_file_and_valid(Request &request, Location &location)
+{
+	string new_file_path = path_where_to_upload_file(request, location);
+	if (location.is_empty() || location.get_upload_path() == "" || path_is_a_directory(location.get_upload_path(), false) || request.get_method() != "POST" || new_file_path == string())
+		return false;
+	else
+		return true;
+}
+
+size_t upload_response(Request &request, string &response, Location &location)
+{
+	off_t file_size;
+	std::fstream stream;
+	char *size_itoa;
+
+	string new_file_path = path_where_to_upload_file(request, location);
+	if ((file_size = get_file_size(new_file_path.c_str())) >= 0 && path_is_a_directory(new_file_path, false) == false)
+		remove(new_file_path.c_str());
+	size_t pos = new_file_path.rfind('/');
+	if (pos != string::npos) //=file in a directory
+	{
+		//opendir avant? ou osef?
+		mkdir(string(new_file_path, 0, pos + 1).c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+	}
+	stream.open(new_file_path.c_str(), stream.out | stream.binary | stream.trunc);
+	stream.write(request.get_body().c_str(), request.get_body().size());
+	add_status_line(response, CREATED);
+	size_itoa = (char *)NumberToString(file_size).c_str();
+	add_header(response, "Content-Length: ", string(size_itoa));
+	if (request.get_headers()["Content-Type"] == string())
+		add_header(response, "Content-Type: ", "application/octet-stream"); //see nginx behavior
+	else
+		add_header(response, "Content-Type: ", request.get_headers()["Content-Type"]);
+	add_header(response, "Location: ", new_file_path);
+	stream.close();
+	return 42;
+}
+
 size_t response_to_POST(Request &request, string &response, Server &server, Location &location)
 {
-
+	// PARTIE JEANNE AVEC IF A CHANGER
 	// if (!request.is_CGI())
 	// {
 	// 	add_status_line(response, CREATED); //a verifier
@@ -256,21 +314,10 @@ size_t response_to_POST(Request &request, string &response, Server &server, Loca
 	// }
 	if (request_is_cgi(request, location))
 		return CGI_response(request, response, location);
+	else if (request_is_to_upload_a_file_and_valid(request, location))
+		return upload_response(request, response, location);
 	else
 		return error_response(response, NOT_FOUND, server);
-}
-
-
-bool path_is_a_directory(string path, bool slash_needed)
-{
-	if (slash_needed && path[path.size() - 1] != '/') //nginx considers a / ends directory paths
-		return false;
-	DIR *dir;
-	bool ret = false;
-	if ((dir = opendir(path.c_str())) != NULL)
-		ret = true;
-	closedir(dir);
-	return ret;
 }
 
 bool autoindex_is_on_and_valid(Request &request, Location &location)
@@ -308,7 +355,7 @@ size_t redirected_response(string &response, pair_str_str redirect, Server &serv
 	string server_name = string();
 	if (server.get_server_names() != vec_string())
 		server_name = server.get_server_names()[0];
-	add_header(response, "Server: ", server_name); //choix statique a confirmer
+	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
 	add_header(response, "Location: ", redirect.second);
 	return response.size();
@@ -334,7 +381,6 @@ void append_index_to_path(Request &request, Server &server, Location &location)
 		}
 	}
 	request.set_translated_path(new_path);
-	get_translated_path() << '\n';
 }
 
 size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server, Location &location)
@@ -371,8 +417,8 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		//Adding body
 		if (request.get_method() == "GET")
 			add_body_from_path(response, request.get_translated_path(), file_size);
-	}	 //avant essayer avec index dans config
-	else //stat renvoie -1 == 404 Not Found ou voir en fonction de errno ?
+	}
+	else
 		return error_response(response, NOT_FOUND, server);
 	return 42;
 }
@@ -428,6 +474,8 @@ void translate_path(Request &request, Server &server, Location &location)
 	string root;
 	if (location.is_empty() == true || location.root_is_set() == false)
 		root = server.get_root();
+	else if (request.get_method() == "POST" && location.get_upload_path() != "")
+		root = location.get_upload_path();
 	else
 		root = location.get_root();
 	request.append_root_to_path(root);
@@ -435,11 +483,11 @@ void translate_path(Request &request, Server &server, Location &location)
 
 size_t response_to_DELETE(Request &request, string &response, Server &server)
 {
-	if(remove(request.get_path().c_str()) != 0 )
+	if (remove(request.get_path().c_str()) != 0)
 		error_response(response, NOT_FOUND, server);
 	else
 	{
-		add_status_line(response, "204");
+		add_status_line(response, NO_CONTENT);
 		add_header(response, "Date: ", get_current_date());
 	}
 	return (42); // a clean later
@@ -461,11 +509,11 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 		return response_to_GET_or_HEAD(request, response, server, location);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response, server, location);
-	else if (request.get_method() == "DELETE")				  //a implementer
+	else if (request.get_method() == "DELETE") //a implementer
 		return response_to_DELETE(request, response, server);
 	else
 		return error_response(response, NOT_ALLOWED, server); //405
-	return 42;						
+	return 42;
 }
 
 /* response headers:
