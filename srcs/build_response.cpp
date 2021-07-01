@@ -52,7 +52,6 @@ string get_last_modified(const char *path)
 
 	if (stat(path, &stat_struct) != 0)
 		std::cout << strerror(errno) << " for path " << path << std::endl;
-	; //gerer les cas d'erreur ?
 	last_modification = stat_struct.st_mtime;
 	mtime = localtime(&last_modification);
 	strftime(tmbuf, sizeof tmbuf, "%a, %d %b %Y %H:%M:%S GMT", mtime);
@@ -203,7 +202,10 @@ size_t CGI_response(Request &request, string &response, Location &location)
 bool request_is_cgi(Request &request, Location &location)
 {
 	string path = request.get_translated_path();
-	if (!location.is_empty() && location.get_cgi_path() != "" && path.size() >= 4 && path.compare(path.size() - 4, 4, ".php") == 0)
+	if (location.is_empty())
+		return false;
+	string cgi_ext = location.get_cgi_extension();
+	if (location.get_cgi_path() != "" && path.size() >= 4 && path.compare(path.size() - cgi_ext.size(), cgi_ext.size(), cgi_ext) == 0)
 		return true;
 	else
 		return false;
@@ -327,24 +329,18 @@ void append_index_to_path(Request &request, Server &server, Location &location)
 		for (size_t i = 0; i < indexes.size(); i++)
 		{
 			new_path = request.get_translated_path() + indexes[i];
-			std::cout << "In append_index, new path is: " << new_path << '\n';
 			if (get_file_size(new_path.c_str()) >= 0)
-			{
-				std::cout << "Valid file path found" << '\n';
 				break;
-			}
 		}
 	}
 	request.set_translated_path(new_path);
-	std::cout << "After appending index, new path is: " << request.get_translated_path() << '\n';
+	get_translated_path() << '\n';
 }
 
 size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server, Location &location)
 {
 	off_t file_size = 0;
 
-	std::cout << "In GET --- path is: " << request.get_path() << "\n";
-	std::cout << "translated path is: " << request.get_translated_path() << "\n";
 	//	string index;
 	if (path_is_a_directory(request.get_translated_path(), true) && autoindex_is_on_and_valid(request, location))
 		return directory_listing_response(request, response, server);
@@ -352,11 +348,8 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 		append_index_to_path(request, server, location);
 	if (request_is_cgi(request, location) && request.get_query_string() != "")
 	{
-		std::cout << "GET cgi_request\n";
 		Request newRequest = Request(request, request.get_query_string());
-		std::cout << newRequest << std::endl;
 		return CGI_response(newRequest, response, location);
-	//	return response_to_POST(newRequest, response);
 	}
 	if ((file_size = get_file_size(request.get_translated_path().c_str())) >= 0 && path_is_a_directory(request.get_translated_path(), false) == false)
 	{
@@ -458,11 +451,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	if (request.is_bad_request())
 		return error_response(response, BAD_REQUEST, server); //400
 	server = choose_server(request, servers);
-	std::cout << "\n----SELECTED SERVER IS:"
-			  << server;
 	Location location = choose_location(request.get_path(), server.get_locations());
-	std::cout << "----SELECTED LOCATION IS:"
-			  << location;
 	if (location.method_is_allowed(request.get_method()) == false)
 		return error_response(response, NOT_ALLOWED, server);
 	translate_path(request, server, location);
