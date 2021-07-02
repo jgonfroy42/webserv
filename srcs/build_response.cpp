@@ -151,6 +151,7 @@ void add_body_from_path(string &response, string path, off_t file_size)
 
 size_t CGI_response(Request &request, string &response, Location &location)
 {
+	std::cout << "REQUEST POST = " << location.get_path() << " !!!\n";
 	string request_body = request.get_body();
 	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
 	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
@@ -219,6 +220,12 @@ bool error_page_found_and_valid(Server &server, string code)
 		return false;
 }
 
+string	error_page_generator(string code, string server_name)
+{
+	map_str_str statusMsg = statusCodes();
+	return string("<!doctype html>\n<html>\n<head><title>" + code + " " + statusMsg[code] + "</title></head>\n<body bgcolor=\"white\">\n<center><h1>" + code + " " + statusMsg[code] + "</h1></center>\n<hr><center>" + server_name + "</center>\n</body>\n</html>");
+}
+
 size_t error_response(string &response, string code, Server &server)
 {
 	off_t file_size = -1;
@@ -227,15 +234,24 @@ size_t error_response(string &response, string code, Server &server)
 	string body_path;
 	if (server.get_id() != -1 && server.get_server_names() != vec_string())
 		server_name = server.get_server_names()[0];
+	else
+		server_name = "Jeancerveur 1.0";
 	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
 	if (server.get_id() != -1 && error_page_found_and_valid(server, code) == true)
+	{
 		body_path = server.get_error_path(code);
+		file_size = get_file_size(body_path.c_str());
+		add_body_from_path(response, body_path, file_size);
+	}
 	else
-		body_path = "error_pages/" + code + "_error.html";
-	file_size = get_file_size(body_path.c_str());
-	add_body_from_path(response, body_path, file_size);
+	{
+		string body = error_page_generator(code, server_name);
 
+		add_header(response, "Content-Length: ", NumberToString(body.length()));
+		response += "\n";
+		response += body;
+	}
 	return response.size();
 }
 
@@ -511,7 +527,7 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 		return response_to_GET_or_HEAD(request, response, server, location);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response, server, location);
-	else if (request.get_method() == "DELETE") //a implementer
+	else if (request.get_method() == "DELETE")
 		return response_to_DELETE(request, response, server);
 	else
 		return error_response(response, NOT_ALLOWED, server); //405
