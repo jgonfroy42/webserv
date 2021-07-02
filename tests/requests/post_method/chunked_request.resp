@@ -1,0 +1,13 @@
+HTTP/1.1 405 Not Allowed
+Server: jeancerveur
+Date: Fri, 02 Jul 2021 20:02:53 GMT
+Content-Length: 180
+
+<!doctype html>
+<html>
+<head><title>405 Not Allowed</title></head>
+<body bgcolor="white">
+<center><h1>405 Not Allowed</h1></center>
+<hr><center>jeancerveur</center>
+</body>
+</html>

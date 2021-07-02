@@ -1,0 +1,13 @@
+HTTP/1.1 400 Bad Request
+Server: Jeancerveur 1.0
+Date: Fri, 02 Jul 2021 20:09:36 GMT
+Content-Length: 184
+
+<!doctype html>
+<html>
+<head><title>400 Bad Request</title></head>
+<body bgcolor="white">
+<center><h1>400 Bad Request</h1></center>
+<hr><center>Jeancerveur 1.0</center>
+</body>
+</html>

@@ -167,10 +167,10 @@ size_t CGI_response(Request &request, string &response, Location &location)
 		close(link[1]);
 		char **input = (char **)malloc(sizeof(char *) * 3);
 
-		input[0] = strdup("/usr/bin/php-cgi");
-		input[1] = strdup(location.get_cgi_path().c_str());
+		input[0] = strdup(location.get_cgi_path().c_str());
+		input[1] = strdup(request.get_translated_path().c_str());
 		input[2] = NULL;
-		execve("/usr/bin/php-cgi", input, CGI_env);
+		execve(location.get_cgi_path().c_str(), input, CGI_env);
 		free(input[0]);
 		free(input[1]);
 		free(input);
@@ -501,7 +501,7 @@ void translate_path(Request &request, Server &server, Location &location)
 
 size_t response_to_DELETE(Request &request, string &response, Server &server)
 {
-	if (remove(request.get_path().c_str()) != 0)
+	if (remove(request.get_translated_path().c_str()) != 0)
 		error_response(response, NOT_FOUND, server);
 	else
 	{

@@ -1,0 +1,14 @@
+HTTP/1.1 403 Forbidden
+Server: nginx/1.14.0 (Ubuntu)
+Date: Fri, 02 Jul 2021 17:56:38 GMT
+Content-Type: text/html
+Content-Length: 178
+Connection: keep-alive
+
+<html>
+<head><title>403 Forbidden</title></head>
+<body bgcolor="white">
+<center><h1>403 Forbidden</h1></center>
+<hr><center>nginx/1.14.0 (Ubuntu)</center>
+</body>
+</html>

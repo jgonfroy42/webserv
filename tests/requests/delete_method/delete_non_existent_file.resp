@@ -1,0 +1,13 @@
+HTTP/1.1 404 Not Found
+Server: jeancerveur
+Date: Fri, 02 Jul 2021 19:23:38 GMT
+Content-Length: 176
+
+<!doctype html>
+<html>
+<head><title>404 Not Found</title></head>
+<body bgcolor="white">
+<center><h1>404 Not Found</h1></center>
+<hr><center>jeancerveur</center>
+</body>
+</html>

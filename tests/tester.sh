@@ -33,7 +33,7 @@ function test_request() {
 	if [ "$STATUS_OUR" == "$STATUS_TRUE" ]; then
 		printf "%-2s${GREEN}✅${EOC} $4\n"
 	else
-		echo "NOT OK"
+		printf "%-2s${RED}X${EOC} $4\n"
 	fi
 }
 
@@ -47,8 +47,31 @@ function tests() {
 }
 
 test_bad_config
+
 tests "bad_requests"
+
+tests "errors"
+
 tests "get_method"
+
+tests "post_method"
+
+tests "delete_method"
+YOLO=../files/jeancerveur_files/to_delete/yolo
+NO_RIGHT=../files/jeancerveur_files/to_delete/no_right
+if test -f "$YOLO"; then
+	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
+else
+	printf "%-4s${GREEN}->${EOC} yolo correctly deleted\n"
+fi
+if test -f "$NO_RIGHT"; then
+	printf "%-2s${RED}X${EOC} no_right NOT deleted\n"
+else
+	printf "%-4s${GREEN}->${EOC} no_right correctly deleted\n"
+fi
+touch $YOLO
+touch $NO_RIGHT
+chmod 000 $NO_RIGHT
 
 rm tmp_res
 
