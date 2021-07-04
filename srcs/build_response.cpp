@@ -138,7 +138,8 @@ void add_body_from_path(string &response, string path, off_t file_size)
 {
 	char *size_itoa;
 	size_itoa = (char *)NumberToString(file_size).c_str();
-	char *buffer = new char[file_size];
+	char *buffer = new char[file_size + 1];
+	buffer[file_size] = '\0';
 	std::ifstream stream;
 	stream.open(path.c_str(), std::ifstream::binary);
 	stream.read(buffer, sizeof(char) * file_size);
