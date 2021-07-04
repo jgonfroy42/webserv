@@ -150,7 +150,7 @@ void add_body_from_path(string &response, string path, off_t file_size)
 	stream.close();
 }
 
-size_t CGI_response(Request &request, string &response, Location &location)
+void CGI_response(Request &request, string &response, Location &location)
 {
 	string request_body = request.get_body();
 	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
@@ -197,7 +197,6 @@ size_t CGI_response(Request &request, string &response, Location &location)
 		response += '\n';
 		response += body;
 	}
-	return 42;
 }
 
 bool request_is_cgi(Request &request, Location &location)
@@ -220,7 +219,7 @@ bool error_page_found_and_valid(Server &server, string code)
 		return false;
 }
 
-size_t error_response(string &response, string code, Server &server)
+void error_response(string &response, string code, Server &server)
 {
 	off_t file_size = -1;
 	add_status_line(response, code);
@@ -236,8 +235,6 @@ size_t error_response(string &response, string code, Server &server)
 		body_path = "error_pages/" + code + "_error.html";
 	file_size = get_file_size(body_path.c_str());
 	add_body_from_path(response, body_path, file_size);
-
-	return response.size();
 }
 
 bool path_is_a_directory(string path, bool slash_needed)
@@ -269,7 +266,7 @@ bool request_is_to_upload_a_file_and_valid(Request &request, Location &location)
 		return true;
 }
 
-size_t upload_response(Request &request, string &response, Location &location)
+void upload_response(Request &request, string &response, Location &location)
 {
 	off_t file_size;
 	std::fstream stream;
@@ -295,10 +292,9 @@ size_t upload_response(Request &request, string &response, Location &location)
 		add_header(response, "Content-Type: ", request.get_headers()["Content-Type"]);
 	add_header(response, "Location: ", new_file_path);
 	stream.close();
-	return 42;
 }
 
-size_t chunked_response(Request &request, string &response)
+void chunked_response(Request &request, string &response)
 {
 		add_status_line(response, CREATED); //a verifier
 		string body = request.get_body();
@@ -308,14 +304,13 @@ size_t chunked_response(Request &request, string &response)
 		add_header(response, "Content-Length: ", string(size_itoa));
 		response += '\n';
 		response += body;
-		return 42;
 }
 
-size_t response_to_POST(Request &request, string &response, Server &server, Location &location)
+void response_to_POST(Request &request, string &response, Server &server, Location &location)
 {
-	if (request.is_chunked())
-		return chunked_response(request, response);
-	else if (request_is_cgi(request, location))
+	// if (request.is_chunked())
+	// 	return chunked_response(request, response);
+	if (request_is_cgi(request, location))
 		return CGI_response(request, response, location);
 	else if (request_is_to_upload_a_file_and_valid(request, location))
 		return upload_response(request, response, location);
@@ -331,7 +326,7 @@ bool autoindex_is_on_and_valid(Request &request, Location &location)
 		return false;
 }
 
-size_t directory_listing_response(Request &request, string &response, Server &server)
+void directory_listing_response(Request &request, string &response, Server &server)
 {
 	add_status_line(response, OK); //200
 
@@ -349,10 +344,9 @@ size_t directory_listing_response(Request &request, string &response, Server &se
 
 	response += '\n';
 	response += body;
-	return 42;
 }
 
-size_t redirected_response(string &response, pair_str_str redirect, Server &server)
+void redirected_response(string &response, pair_str_str redirect, Server &server)
 {
 	add_status_line(response, redirect.first);
 	string server_name = string();
@@ -361,7 +355,6 @@ size_t redirected_response(string &response, pair_str_str redirect, Server &serv
 	add_header(response, "Server: ", server_name);
 	add_header(response, "Date: ", get_current_date());
 	add_header(response, "Location: ", redirect.second);
-	return response.size();
 }
 
 void append_index_to_path(Request &request, Server &server, Location &location)
@@ -386,15 +379,10 @@ void append_index_to_path(Request &request, Server &server, Location &location)
 	request.set_translated_path(new_path);
 }
 
-size_t response_to_GET_or_HEAD(Request &request, string &response, Server &server, Location &location)
+void response_to_GET_or_HEAD(Request &request, string &response, Server &server, Location &location)
 {
 	off_t file_size = 0;
 
-	//	string index;
-	if (path_is_a_directory(request.get_translated_path(), true) && autoindex_is_on_and_valid(request, location))
-		return directory_listing_response(request, response, server);
-	else if (path_is_a_directory(request.get_translated_path(), true))
-		append_index_to_path(request, server, location);
 	if (request_is_cgi(request, location) && request.get_query_string() != "")
 	{
 		Request newRequest = Request(request, request.get_query_string());
@@ -423,7 +411,6 @@ size_t response_to_GET_or_HEAD(Request &request, string &response, Server &serve
 	}
 	else
 		return error_response(response, NOT_FOUND, server);
-	return 42;
 }
 
 Server choose_server(Request &request, std::vector<Server> &servers)
@@ -472,7 +459,7 @@ bool redirection_found(Location &location)
 		return true;
 }
 
-void translate_path(Request &request, Server &server, Location &location)
+bool translated_path_ends_in_directory_listing(Request &request, Server &server, Location &location)
 {
 	string root;
 	if (location.is_empty() == true || location.root_is_set() == false)
@@ -482,9 +469,14 @@ void translate_path(Request &request, Server &server, Location &location)
 	else
 		root = location.get_root();
 	request.append_root_to_path(root);
+	if (request.get_method() == "GET" && (request.get_translated_path(), true) && autoindex_is_on_and_valid(request, location))
+		return true;
+	else if (path_is_a_directory(request.get_translated_path(), true))
+		append_index_to_path(request, server, location);
+	return false;
 }
 
-size_t response_to_DELETE(Request &request, string &response, Server &server)
+void response_to_DELETE(Request &request, string &response, Server &server)
 {
 	if (remove(request.get_path().c_str()) != 0)
 		error_response(response, NOT_FOUND, server);
@@ -493,10 +485,29 @@ size_t response_to_DELETE(Request &request, string &response, Server &server)
 		add_status_line(response, NO_CONTENT);
 		add_header(response, "Date: ", get_current_date());
 	}
-	return (42); // a clean later
 }
 
-size_t build_response(Request &request, string &response, std::vector<Server> &servers)
+bool path_has_no_rights(Request &request)
+{
+	//see https://stackoverflow.com/questions/1430240/c-read-a-files-permissions
+	string path = request.get_translated_path();
+	string method = request.get_method();
+	struct stat stat_struct;
+
+	//Testing for rights in all parent directories
+	if (stat(path.c_str(), &stat_struct) == -1 && errno == EACCES) 
+		return true;
+	//Testing read rights for any method but POST
+	if (method != "POST" && fopen(path.c_str(), "r") == NULL && errno == EACCES)
+		return true;
+	//Testing write rights for POST
+	if (method == "POST" && fopen(path.c_str(), "w") == NULL && errno == EACCES)
+		return true;
+	else
+		return false;
+}
+
+void build_response(Request &request, string &response, std::vector<Server> &servers)
 {
 	Server server = Server();
 	if (request.is_bad_request())
@@ -504,32 +515,19 @@ size_t build_response(Request &request, string &response, std::vector<Server> &s
 	server = choose_server(request, servers);
 	Location location = choose_location(request.get_path(), server.get_locations());
 	if (location.method_is_allowed(request.get_method()) == false)
-		return error_response(response, NOT_ALLOWED, server);
-	translate_path(request, server, location);
+		return error_response(response, NOT_ALLOWED, server);//405
+	if (translated_path_ends_in_directory_listing(request, server, location))
+		return directory_listing_response(request, response, server);
+	if (path_has_no_rights(request))
+		return error_response(response, FORBIDDEN, server);//403
 	if (redirection_found(location))
 		return redirected_response(response, location.get_redirect(), server);
 	else if (request.get_method() == "GET" || request.get_method() == "HEAD")
 		return response_to_GET_or_HEAD(request, response, server, location);
 	else if (request.get_method() == "POST")
 		return response_to_POST(request, response, server, location);
-	else if (request.get_method() == "DELETE") //a implementer
+	else if (request.get_method() == "DELETE")
 		return response_to_DELETE(request, response, server);
 	else
 		return error_response(response, NOT_ALLOWED, server); //405
-	return 42;
 }
-
-/* response headers:
-"Allow" https://datatracker.ietf.org/doc/html/rfc7231#section-7.4.1 obligatoire pour reponse 405
-"Content-Language" //osef
-"Content-Length" https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
-"Content-Location"	//osef
-"Content-Type"
-"Date" https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.1.2 
-"Last-Modified" https://datatracker.ietf.org/doc/html/rfc7232#section-2.2
-"Location" https://datatracker.ietf.org/doc/html/rfc7231#section-7.1.2 utilise en cas de creation (201) ou de redirection (3xx)
-"Retry-After" //osef
-"Server" https://datatracker.ietf.org/doc/html/rfc7231#section-7.4.2
-"Transfer-Encoding" osef ? https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.1
-"WWW-Authenticate" osef ?
- */
