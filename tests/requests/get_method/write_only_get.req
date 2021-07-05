@@ -1,0 +1,2 @@
+GET /write_only.txt HTTP/1.1
+Host: localhost:8080

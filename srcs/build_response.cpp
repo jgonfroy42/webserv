@@ -183,7 +183,7 @@ void CGI_response(Request &request, string &response, Location &location)
 		close(link[1]);
 		read(link[0], cgi_response, sizeof(cgi_response));
 		string cgi_str(cgi_response);
-		add_status_line(response, CREATED); //a verifier
+		add_status_line(response, OK); //a verifier
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
@@ -304,7 +304,7 @@ void upload_response(Request &request, string &response, Location &location)
 	size_itoa = (char *)NumberToString(file_size).c_str();
 	add_header(response, "Content-Length: ", string(size_itoa));
 	if (request.get_headers()["Content-Type"] == string())
-		add_header(response, "Content-Type: ", "application/octet-stream"); //see nginx behavior
+		add_header(response, "Content-Type: ", "text/html"); //see nginx behavior
 	else
 		add_header(response, "Content-Type: ", request.get_headers()["Content-Type"]);
 	add_header(response, "Location: ", new_file_path);
@@ -400,7 +400,7 @@ void response_to_GET_or_HEAD(Request &request, string &response, Server &server,
 {
 	off_t file_size = 0;
 
-	if (request_is_cgi(request, location) && request.get_query_string() != "")
+	if (request_is_cgi(request, location))
 	{
 		Request newRequest = Request(request, request.get_query_string());
 		return CGI_response(newRequest, response, location);

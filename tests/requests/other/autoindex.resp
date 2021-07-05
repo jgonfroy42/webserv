@@ -1,0 +1,40 @@
+HTTP/1.1 200 OK
+Date: Mon, 05 Jul 2021 20:40:41 GMT
+Server: jeancerveur
+Content-Length: 1019
+
+<!doctype html>
+<html>
+    <head>
+        <style>
+            table, hr { width:800px; margin-left: 0; text-align: left; }
+        </style>
+        <title>Index of files/jeancerveur_files/uploaded/</title>
+    </head>
+    <body>
+        <h1>Index of uploaded/</h1>
+        <hr/>
+        <table>            <tr>
+                <th><a href="..">..</a></th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <th><a href="exist.txt">exist.txt</a></th>
+                <th>Mon, 05 Jul 2021 20:31:20 GMT</th>
+                <th>35</th>
+            </tr>
+            <tr>
+                <th><a href="no_exist.txt">no_exist.txt</a></th>
+                <th>Mon, 05 Jul 2021 20:31:20 GMT</th>
+                <th>13</th>
+            </tr>
+            <tr>
+                <th><a href="no_right.txt">no_right.txt</a></th>
+                <th>Mon, 05 Jul 2021 20:11:17 GMT</th>
+                <th>23</th>
+            </tr>
+        </table>
+        <hr/>
+    </body>
+</html>

@@ -2,12 +2,6 @@ POST /uploaded/no_exist.txt HTTP/1.1
 Host: localhost:8080
 User-Agent: curl/7.58.0
 Accept: */*
-Transfer-Encoding: chunked
 Content-Type: application/x-www-form-urlencoded
 
-3
-tut
-1
-u
-0
-
+I now exist

@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Date: Mon, 05 Jul 2021 20:06:07 GMT
+Content-Length: 176
+Content-Type: text/html
+
+
+<!doctype html>
+<html>
+        <meta charset="UTF-8">
+  <head>  
+    <title>A super blog</title>
+  </head>
+  <body>
+                <h2>aaa</h2><p>aaa</p><p>Written by aaaa</p>
+  </body>
+</html>

@@ -9,7 +9,14 @@ BOLD="\e[1m"
 RED="\e[91m"
 GREEN="\e[92m"
 
-# ./$webserv_exec ../config/test.conf &>logs
+echo -e "\n--------------- TESTEUR JEANCERV 1.0 ----------------\n"
+echo -e "Before continuing, please make sure you are running the server as followed :
+	./webserv config/test.conf\n"
+echo "Enter to continue (or q quit)"
+read inputuser
+if [ "$inputuser" == "q" ]; then
+	exit ;
+fi
 
 function test_bad_config() {
 	printf "TESTING BAD CONFIGS\n"
@@ -28,17 +35,21 @@ function test_bad_config() {
 
 function test_request() {
 	nc $1 $2 < requests/$3/$4.req > tmp_res
-	echo "------ TESTING :" $4 >> logs
+	echo "----------------- TESTING :" $4 >> logs
 	cat requests/$3/$4.req >> logs
 	echo -e "\n--" >> logs
 	cat tmp_res >> logs
-	echo -e "\n\n" >> logs
+	echo -e "\n\n-- EXPECTED :" >> logs
+	echo "$(head -n1 requests/$3/$4.resp)" >> logs
+	echo -e "\n" >> logs
 	STATUS_OUR="$(head -n1 tmp_res)"
 	STATUS_TRUE="$(head -n1 requests/$3/$4.resp)"
 	if [ "$STATUS_OUR" == "$STATUS_TRUE" ]; then
 		printf "%-2s${GREEN}✅${EOC} $4\n"
+		echo -e "--------------------------- OK !! \n\n" >> logs
 	else
 		printf "%-2s${RED}X${EOC} $4\n"
+		echo -e "--------------------------- WRONG !! \n\n" >> logs
 	fi
 }
 
@@ -60,13 +71,21 @@ tests "bad_requests"
 chmod 000 ../files/jeancerveur_files/no_right.txt
 tests "errors"
 
+chmod 010 ../files/jeancerveur_files/write_only.txt
 tests "get_method"
 
+
+chmod 000 ../files/jeancerveur_files/uploaded/no_right.txt
+if test -f ../files/jeancerveur_files/uploaded/not_exist.txt; then
+	rm ../files/jeancerveur_files/uploaded/not_exist.txt
+fi
 tests "post_method"
 
-tests "delete_method"
+
 YOLO=../files/jeancerveur_files/to_delete/yolo
 NO_RIGHT=../files/jeancerveur_files/to_delete/no_right_delete
+chmod 000 $NO_RIGHT
+tests "delete_method"
 if test -f "$YOLO"; then
 	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
 else
@@ -79,6 +98,52 @@ else
 fi
 touch $YOLO
 
+tests "other"
+
+
+# --------- Tests manuels
+
+# multiple server
+SERVER1="$(nc localhost 8080 < requests/misc/server1.req)"
+SERVER2="$(nc localhost 9000 < requests/misc/server2.req)"
+if [ "$SERVER1" != "$SERVER2" ]; then
+	printf "%-2s${GREEN}✅${EOC} multiple server\n"
+else
+	printf "%-2s${RED}X${EOC} multiple server\n"
+fi
+
+# error page
+DEFAULT="$(nc localhost 8080 < requests/misc/error_page_default.req)"
+CUSTOM="$(nc localhost 9000 < requests/misc/error_page_custom.req)"
+if [ "$CUSTOM" != "$DEFAULT" ]; then
+	printf "%-2s${GREEN}✅${EOC} custom error_page\n"
+else
+	printf "%-2s${RED}X${EOC} custom error_page\n"
+fi
+
+#client body
+
+
+
+# hostname
+curl -s --resolve webserv:9000:127.0.0.1 http://webserv:9000 -o tmp_res
+if [ "$(cat tmp_res)" == "$(cat requests/misc/hostname.resp)" ]; then
+	printf "%-2s${GREEN}✅${EOC} hostname\n"
+else
+	printf "%-2s${RED}X${EOC} hostname\n"
+fi
+
+chmod 777 $NO_RIGHT
+chmod 777 ../files/jeancerveur_files/uploaded/no_right.txt
+chmod 777 ../files/jeancerveur_files/write_only.txt
+chmod 777 ../files/jeancerveur_files/no_right.txt
 rm tmp_res
 
-# siege -v http://localhost:8080
+
+echo -e "\nReady to start the siege ?\n"
+echo "Enter to continue (or q quit)"
+read inputuser
+if [ "$inputuser" == "q" ]; then
+	exit ;
+fi
+siege http://localhost:8080

@@ -245,7 +245,7 @@ void	Location::set_cgi_path(const string location_config)
 	else
 		this->_cgi_extension = "";
 	
-	cgi_line = get_configuration(location_config, "upload", true);
+	cgi_line = get_configuration(location_config, " upload ", true);
 	if (cgi_line != "")
 	{
 		size_t split_pos = cgi_line.find(' ');
