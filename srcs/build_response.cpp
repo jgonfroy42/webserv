@@ -152,6 +152,7 @@ void add_body_from_path(string &response, string path, off_t file_size)
 
 void CGI_response(Request &request, string &response, Location &location)
 {
+	std::cout << "CGI response\n";
 	string request_body = request.get_body();
 	std::vector<string> CGI_vector = convert_CGI_string_to_vector(request_body);
 	char **CGI_env = convert_CGI_vector_to_CGI_env(CGI_vector); //double malloc
@@ -182,7 +183,7 @@ void CGI_response(Request &request, string &response, Location &location)
 		close(link[1]);
 		read(link[0], cgi_response, sizeof(cgi_response));
 		string cgi_str(cgi_response);
-		add_status_line(response, CREATED); //a verifier
+		add_status_line(response, CREATED);
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);
@@ -270,22 +271,27 @@ void upload_response(Request &request, string &response, Location &location)
 {
 	off_t file_size;
 	std::fstream stream;
-	char *size_itoa;
+	string size_itoa;
 
 	string new_file_path = path_where_to_upload_file(request, location);
+
+	//testing if file already exists / if yes removed
 	if ((file_size = get_file_size(new_file_path.c_str())) >= 0 && path_is_a_directory(new_file_path, false) == false)
-		remove(new_file_path.c_str());
-	size_t pos = new_file_path.rfind('/');
-	if (pos != string::npos) //=file in a directory
 	{
-		//opendir avant? ou osef?
+		remove(new_file_path.c_str());
+		add_status_line(response, OK);
+	}
+	else
+		add_status_line(response, CREATED);
+	size_t pos = new_file_path.rfind('/');
+	if (pos != string::npos) //=file in a directory = creating directory if does not exist
+	{
 		mkdir(string(new_file_path, 0, pos + 1).c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 	}
 	stream.open(new_file_path.c_str(), stream.out | stream.binary | stream.trunc);
 	stream.write(request.get_body().c_str(), request.get_body().size());
-	add_status_line(response, CREATED);
-	size_itoa = (char *)NumberToString(file_size).c_str();
-	add_header(response, "Content-Length: ", string(size_itoa));
+	size_itoa = NumberToString(request.get_body().size());
+	add_header(response, "Content-Length: ", size_itoa);
 	if (request.get_headers()["Content-Type"] == string())
 		add_header(response, "Content-Type: ", "application/octet-stream"); //see nginx behavior
 	else
@@ -308,8 +314,6 @@ void chunked_response(Request &request, string &response)
 
 void response_to_POST(Request &request, string &response, Server &server, Location &location)
 {
-	// if (request.is_chunked())
-	// 	return chunked_response(request, response);
 	if (request_is_cgi(request, location))
 		return CGI_response(request, response, location);
 	else if (request_is_to_upload_a_file_and_valid(request, location))
