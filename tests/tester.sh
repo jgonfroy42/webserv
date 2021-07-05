@@ -57,28 +57,27 @@ test_bad_config
 
 tests "bad_requests"
 
+chmod 000 ../files/jeancerveur_files/no_right.txt
 tests "errors"
 
 tests "get_method"
 
 tests "post_method"
 
-# tests "delete_method"
-# YOLO=../files/jeancerveur_files/to_delete/yolo
-# NO_RIGHT=../files/jeancerveur_files/to_delete/no_right
-# if test -f "$YOLO"; then
-# 	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
-# else
-# 	printf "%-4s${GREEN}->${EOC} yolo correctly deleted\n"
-# fi
-# if test -f "$NO_RIGHT"; then
-# 	printf "%-2s${RED}X${EOC} no_right NOT deleted\n"
-# else
-# 	printf "%-4s${GREEN}->${EOC} no_right correctly deleted\n"
-# fi
-# touch $YOLO
-# touch $NO_RIGHT
-# chmod 000 $NO_RIGHT
+tests "delete_method"
+YOLO=../files/jeancerveur_files/to_delete/yolo
+NO_RIGHT=../files/jeancerveur_files/to_delete/no_right_delete
+if test -f "$YOLO"; then
+	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
+else
+	printf "%-4s${GREEN}->${EOC} yolo correctly deleted\n"
+fi
+if test -f "$NO_RIGHT"; then
+	printf "%-4s${GREEN}->${EOC} no_right not deleted\n"
+else
+	printf "%-2s${RED}X${EOC} no_right deleted\n"
+fi
+touch $YOLO
 
 rm tmp_res
 

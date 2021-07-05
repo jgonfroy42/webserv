@@ -5,6 +5,7 @@
 string	generate_tr(const char *path, string original_path, unsigned char d_type)
 {
 	string size;
+	string pa(path);
 	string full_path = original_path + "/" + path;
 	string date = get_last_modified(full_path.c_str());
 	if (d_type != DT_DIR)
@@ -15,7 +16,9 @@ string	generate_tr(const char *path, string original_path, unsigned char d_type)
 	}
 	else
 		size = "-";
-	string tr = "            <tr>\n                <th><a href=\""+ full_path +"\">" + string(path) + "</a></th>\n                <th>" + date + "</th>\n                <th>" + size + "</th>\n            </tr>\n";
+	if (d_type == DT_DIR)
+		pa += "/";
+	string tr = "            <tr>\n                <th><a href=\""+ pa +"\">" + string(path) + "</a></th>\n                <th>" + date + "</th>\n                <th>" + size + "</th>\n            </tr>\n";
 	return (tr);
 }
 

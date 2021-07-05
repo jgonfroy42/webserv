@@ -1,2 +1,13 @@
-HTTP/1.1 204 No Content
-Date: Fri, 02 Jul 2021 19:32:53 GMT
+HTTP/1.1 403 Forbidden
+Server: jeancerveur
+Date: Mon, 05 Jul 2021 15:47:56 GMT
+Content-Length: 176
+
+<!doctype html>
+<html>
+<head><title>403 Forbidden</title></head>
+<body bgcolor="white">
+<center><h1>403 Forbidden</h1></center>
+<hr><center>jeancerveur</center>
+</body>
+</html>

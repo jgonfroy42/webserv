@@ -1,2 +1,2 @@
-DELETE /to_delete/no_right HTTP/1.1
+DELETE /to_delete/no_right_delete HTTP/1.1
 Host: localhost:8080
