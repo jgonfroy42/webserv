@@ -43,6 +43,7 @@
 # define NO_CONTENT			"204"
 # define TEMPORARY_REDIRECT "307"
 # define BAD_REQUEST		"400"
+# define FORBIDDEN			"403"
 # define NOT_FOUND			"404"
 # define NOT_ALLOWED		"405"
 # define TOO_LARGE			"413"
@@ -63,7 +64,7 @@ typedef std::pair<std::string, std::string> pair_str_str;
 class Server;
 
 void			displayMap(map_str_str toDisplay);
-size_t			build_response(Request &request, string &response, 									std::vector<Server> &servers);
+void			build_response(Request &request, string &response, 									std::vector<Server> &servers);
 map_str_str		statusCodes();
 
 

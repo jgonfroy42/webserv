@@ -28,6 +28,11 @@ function test_bad_config() {
 
 function test_request() {
 	nc $1 $2 < requests/$3/$4.req > tmp_res
+	echo "------ TESTING :" $4 >> logs
+	cat requests/$3/$4.req >> logs
+	echo -e "\n--" >> logs
+	cat tmp_res >> logs
+	echo -e "\n\n" >> logs
 	STATUS_OUR="$(head -n1 tmp_res)"
 	STATUS_TRUE="$(head -n1 requests/$3/$4.resp)"
 	if [ "$STATUS_OUR" == "$STATUS_TRUE" ]; then
@@ -46,6 +51,8 @@ function tests() {
 	done
 }
 
+rm logs
+
 test_bad_config
 
 tests "bad_requests"
@@ -56,22 +63,22 @@ tests "get_method"
 
 tests "post_method"
 
-tests "delete_method"
-YOLO=../files/jeancerveur_files/to_delete/yolo
-NO_RIGHT=../files/jeancerveur_files/to_delete/no_right
-if test -f "$YOLO"; then
-	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
-else
-	printf "%-4s${GREEN}->${EOC} yolo correctly deleted\n"
-fi
-if test -f "$NO_RIGHT"; then
-	printf "%-2s${RED}X${EOC} no_right NOT deleted\n"
-else
-	printf "%-4s${GREEN}->${EOC} no_right correctly deleted\n"
-fi
-touch $YOLO
-touch $NO_RIGHT
-chmod 000 $NO_RIGHT
+# tests "delete_method"
+# YOLO=../files/jeancerveur_files/to_delete/yolo
+# NO_RIGHT=../files/jeancerveur_files/to_delete/no_right
+# if test -f "$YOLO"; then
+# 	printf "%-2s${RED}X${EOC} yolo NOT deleted\n"
+# else
+# 	printf "%-4s${GREEN}->${EOC} yolo correctly deleted\n"
+# fi
+# if test -f "$NO_RIGHT"; then
+# 	printf "%-2s${RED}X${EOC} no_right NOT deleted\n"
+# else
+# 	printf "%-4s${GREEN}->${EOC} no_right correctly deleted\n"
+# fi
+# touch $YOLO
+# touch $NO_RIGHT
+# chmod 000 $NO_RIGHT
 
 rm tmp_res
 
