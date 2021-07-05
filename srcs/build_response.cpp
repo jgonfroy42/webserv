@@ -277,7 +277,7 @@ string path_where_to_upload_file(Request &request, Location &location)
 bool request_is_to_upload_a_file_and_valid(Request &request, Location &location)
 {
 	string new_file_path = path_where_to_upload_file(request, location);
-	if (location.is_empty() || location.get_upload_path() == "" || path_is_a_directory(location.get_upload_path(), false) || request.get_method() != "POST" || new_file_path == string())
+	if (location.is_empty() || location.get_upload_path() == string() || path_is_a_directory(location.get_upload_path(), false) || request.get_method() != "POST" || new_file_path == string())
 		return false;
 	else
 		return true;
@@ -332,7 +332,7 @@ void response_to_POST(Request &request, string &response, Server &server, Locati
 	else if (request_is_to_upload_a_file_and_valid(request, location))
 		return upload_response(request, response, location);
 	else
-		return error_response(response, NOT_FOUND, server);
+		return error_response(response, FORBIDDEN, server);
 }
 
 bool autoindex_is_on_and_valid(Request &request, Location &location)
@@ -518,7 +518,7 @@ bool path_has_no_rights(Request &request)
 	if (method != "POST" && fopen(path.c_str(), "r") == NULL && errno == EACCES)
 		return true;
 	//Testing write rights for POST
-	if (method == "POST" && fopen(path.c_str(), "w") == NULL && errno == EACCES)
+	if (method == "POST" && fopen(path.c_str(), "r+") == NULL && errno == EACCES)
 		return true;
 	else
 		return false;
