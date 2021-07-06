@@ -1,10 +1,107 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Welcome to index.html !</title>
-  </head>
-  <body>
-	  <h1>Celia is the best</h1>
-	<p>This is an example paragraph.</p>
-  </body>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Jeancerver 1.0</title>
+	<script src="https://kit.fontawesome.com/559dfb4a00.js" crossorigin="anonymous"></script>
+	<link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+	<div id="top_bubble"></div>
+	<div id="main">
+		<div id="header">
+			<h1><i class="fas fa-server yellow"></i> JEANCERVER 1.0</h1>
+			<div id="menu">
+				<a class="left" href="https://developer.mozilla.org/fr/docs/Web/HTTP" target="_blank"><i class="fas fa-laptop-code"></i> HTTP by Mozilla</a>
+				<a href="https://cdn.intra.42.fr/pdf/pdf/25509/en.subject.pdf" target="_blank" id="main_menu_link"><i
+						class="fas fa-file-alt"></i> Sujet</a>
+			</div>
+		</div>
+		<div id="description">
+			This is when<br> you finally understand why <br>a <b>URL starts with HTTP</b>
+		</div>
+		<div class="service">
+			<div class="title">
+				<h2 class="yellow">JEANCERVER QU'EST CE QUE C'EST ?</h2>
+				<span>J</span>
+			</div>
+			<div class="service_body">
+				<div id="server_anim">
+					<span><i class="fas fa-user" id="client"></i></span>
+					<div id="request_anim">
+						<div id="request">GET /something HTTP/1.1<br>Host: jeancerver:8080</div>
+						<span><i class="fas fa-arrow-down" id="arrow_down"></i></span>
+					</div>
+					<div id="response_anim">
+						<span><i class="fas fa-arrow-up" id="arrow_up"></i></span>
+						<div id="response">HTTP/1.1 404 Not Found<br>Server: jeancerveur<br>Content-Length: 43<br><br>The ressource you requested does not exist.</div>
+					</div>
+					
+					<span><i class="fas fa-server" id="server"></i></span>
+				</div>
+				<div>
+					<h3>Un serveur HTTP simple codé en C++ </h3>
+					<p>Jeancerver 1.0 est un serveur basé sur le protocole HTTP 1.1 dit "Hypertext Transfer Protocol" qui permet de transmettre des documents d'un serveur vers un client comme un navigateur web.
+						<br><br>Son principe est simple. Le client ouvre une connexion et envoie une requête HTTP. Le serveur traite cette requête et renvoie le fichier correspondant sous forme d'une réponse HTTP. Dans le cas d'un navigateur web, cette réponse sera alors traitée pour afficher son contenu à l'utilisateur.
+					</p>
+					<a class="service_link" href="https://developer.mozilla.org/fr/docs/Web/HTTP" target="_blank">Pour en savoir plus sur le protocole HTTP <i
+							class="fas fa-external-link-alt"></i></a>
+				</div>
+			</div>
+		</div>
+
+		<div class="service">
+			<div class="title">
+				<h2 class="yellow">EST-CE QUE CA MARCHE ?</h2>
+				<span>E</span>
+			</div>
+			<div class="service_body">
+				<i class="fas fa-question image_left"></i>
+				<div>
+					<h3>On espère ! Mais dans le doute ...</h3>
+					<p>
+						Tous nos tests sont présents dans notre testeur maison placé dans /tests à la racine du projet.<br>
+						<span class="code">./tester.sh<br><br>----- TESTEUR JEANCERV 1.0 -----<br>Before continuing, please make sure you are running the server as followed :<br><br>./webserv config/test.conf<br>(...)</rb></span>
+					</p>
+					
+				</div>
+			</div>
+		</div>
+
+		<div id="links_nav">
+			<h3 class="yellow">Et depuis le navigateur ?</h3>
+			<div>
+				Pour tester les routes, direction le blog !
+			</div>
+			<div>
+				Une petite redirection ?
+			</div>
+			<div>
+				Envie de voir l'autoindex des fichiers uploadés sur le serveur ?
+			</div>
+			<div>
+				Et que se passe-t-il si on essaye d'accéder à une ressource qui n'existe pas ?
+			</div>
+			<div>
+				Et une ressource pour laquelle on a pas les droits ?
+			</div>
+			</div>
+		</div>
+
+	</div>
+	<div id="footer">
+		<div>
+			<i class="fas fa-meteor yellow big_icon"></i>
+			<p>
+				Design inspiré par <a href="https://www.behance.net/gallery/57065493/CAUworking-One-Page"
+					target="_blank">Carlos Silva</a>
+				<br><br><br><br>Webserv par <i class="fas fa-user-astronaut yellow"></i> amartin-, jgonfroy et celeloup.
+				<br></p>
+
+		</div>
+	</div>
+</body>
+
 </html>
