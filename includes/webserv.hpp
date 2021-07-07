@@ -23,6 +23,7 @@
 # include <poll.h>
 # include <dirent.h>
 # include <signal.h>
+# include <sys/wait.h>
 
 //Toujours utile ?
 # include <sys/ioctl.h>

@@ -1,4 +1,4 @@
-HTTP/1.1 201 Created
+HTTP/1.1 200 OK
 Content-Length: 36
 Content-Type: application/x-www-form-urlencoded
 Location: files/jeancerveur_files/uploaded/no_right.txt

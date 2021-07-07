@@ -180,10 +180,12 @@ void CGI_response(Request &request, string &response, Location &location)
 	}
 	else
 	{
+		int status;
+		wait(&status);
 		close(link[1]);
 		read(link[0], cgi_response, sizeof(cgi_response));
 		string cgi_str(cgi_response);
-		add_status_line(response, CREATED);
+		add_status_line(response, OK);
 		char separator[5] = {13, 10, 13, 10, 0};
 		size_t pos = cgi_str.find(separator) + 4;
 		string body = string(cgi_str, pos);

@@ -76,8 +76,11 @@ tests "get_method"
 
 
 chmod 000 ../files/jeancerveur_files/uploaded/no_right.txt
-if test -f ../files/jeancerveur_files/uploaded/not_exist.txt; then
-	rm ../files/jeancerveur_files/uploaded/not_exist.txt
+if test -f ../files/jeancerveur_files/uploaded/no_exist.txt; then
+	rm ../files/jeancerveur_files/uploaded/no_exist.txt
+fi
+if test -f ../files/jeancerveur_files/uploaded/chunk.txt; then
+	rm ../files/jeancerveur_files/uploaded/chunk.txt
 fi
 tests "post_method"
 
