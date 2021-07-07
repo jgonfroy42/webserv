@@ -1,1 +1,1 @@
-You can only write here. No read !!
+you can't write on me (if you chmod 010 me first because you can't push files when you don't have the right on it)

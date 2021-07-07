@@ -305,7 +305,81 @@ h1 {
 }
 
 #links_nav div {
-	margin: 20px;
+	margin: 40px 0;
+	font-size: 18px;
+}
+.link {
+	display: inline-block;
+	width: 100%;
+	font-size: 25px;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.link a:hover {
+	color: #4287f5
+}
+
+.main_blog {
+	display: inline-block;
+	margin-top: 50px;
+	margin-bottom: 50px;
+	max-width: 750px;
+	word-wrap: break-word;
+}
+
+.main_blog a {
+	font-style: italic;
+	text-decoration: underline;
+}
+
+#author {
+	float: right;
+	margin-top: 20px;
+}
+
+#author span {
+	font-style: italic;
+	font-weight: bold;
+	color: #4287f5;
+}
+
+#form{
+	margin-left: 70px;
+	margin-bottom: 100px;
+}
+
+label {
+	font-size: 20px;
+	font-weight: bold;
+}
+
+input, textarea {
+	border-radius: 3px;
+	border: 1px solid #4287f5;
+	margin-bottom: 20px;
+	margin-top: 5px;
+	padding: 10px;
+}
+
+input {
+	height: 10px;
+}
+
+#submit_button {
+	float: right;
+	margin-right: 120px;
+	margin-top: 50px;
+	height: 44px;
+	width: 140px;
+	font-size: 20px;
+	color: white;
+	background-color: #4287f5;
+	font-weight: bold;
+}
+
+#submit_button:hover {
+	cursor: pointer;
 }
 
 /* -- FOOTER -- */

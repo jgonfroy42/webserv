@@ -1,23 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
+<head>
 	<meta charset="UTF-8">
-  <head>  
-    <title>A super blog</title>
-  </head>
-  <body>
-		<h1>Jeancerveur's blog</h1>
-		<h2>I had a dream</h2>
-		<p>L'autre jour j'ai fait un rêve. On validait webserv. C'était bien.</p>
-		<p>Written by Célia</p>
-		</br>
-		
-		<h3>Why don't you submit your own article ?</h3>
-		<form action="post.php" method="post">
-			Title <input type="text" name="title"><br />
-			Content <input type="text" name="content"><br />
-			Your name <input type="text" name="name"><br />
-		<input type="submit" value="Submit info">
-		</form>
-	
-  </body>
+	<title>Jeancerver 1.0 - Blog</title>
+	<script src="https://kit.fontawesome.com/559dfb4a00.js" crossorigin="anonymous"></script>
+	<link href="../style.css" rel="stylesheet">
+</head>
+
+<body>
+	<div id="top_bubble"></div>
+	<div id="main">
+		<div id="header">
+			<h1><i class="fas fa-server yellow"></i> <a href="..">JEANCERVER 1.0</a></h1>
+			<div id="menu">
+				<a class="left" href="https://developer.mozilla.org/fr/docs/Web/HTTP" target="_blank"><i
+						class="fas fa-laptop-code"></i> HTTP by Mozilla</a>
+				<a href="https://cdn.intra.42.fr/pdf/pdf/25509/en.subject.pdf" target="_blank" id="main_menu_link"><i
+						class="fas fa-file-alt"></i> Sujet</a>
+			</div>
+		</div>
+		<div id="description">
+			What a wonderful blog!
+		</div>
+		<div class="service">
+			<div class="title">
+				<h2 class="yellow">UN ARTICLE DE BLOG TOUT SIMPLE</h2>
+			</div>
+			<div class="main_blog">
+				<p>J'ai vraiment la flemme d'écrire un vrai article de blog alors voici un très joli lorem ipsum généré par les soins de <a href="https://www.lipsum.com/">https://www.lipsum.com/</a>. J'espère que vous ne m'en tiendrez pas rigueur. Peace, love, coeur sur vous et votre vache.
+					<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque at luctus libero. Mauris ut magna semper, maximus ligula non, fringilla elit. Integer vitae elementum mi. Proin rutrum erat nec dolor dignissim, vitae volutpat quam finibus. Sed porta, enim ut lobortis eleifend, sapien lectus ornare ex, quis cursus eros dui non nibh. Donec luctus ultrices tortor, et varius velit dapibus et. Praesent ut lacus tellus. Curabitur vitae metus tellus. Integer commodo enim sed massa egestas, ac tempus ipsum egestas. Fusce tincidunt hendrerit aliquet. In semper eros tellus, sit amet rutrum nunc mollis sit amet. Mauris volutpat dui mattis arcu gravida, quis iaculis metus blandit. Nunc sollicitudin dui augue, a volutpat dolor vulputate eget. Vivamus consequat risus quis metus malesuada viverra. Morbi ac nibh tincidunt, hendrerit nisi et, finibus ligula.
+					<br><br>
+					Etiam convallis quis elit non congue. Proin quam diam, maximus id risus quis, eleifend pharetra libero. Maecenas at orci dapibus, lobortis lorem ornare, pellentesque ligula. Vestibulum eu magna non arcu sodales interdum. Nam eu augue vitae nibh tincidunt porttitor. Nam rutrum pulvinar diam quis viverra. Suspendisse accumsan auctor orci, eget vehicula ipsum consectetur vel. Praesent arcu nibh, sodales sodales faucibus fermentum, convallis vitae lacus. Donec ac arcu ut risus blandit feugiat sit amet ac felis. Quisque lacinia pretium fermentum. Nam condimentum interdum convallis. Fusce eleifend molestie sapien in viverra. Sed sed eros turpis. Quisque id malesuada nibh. Proin ut ullamcorper nisl, eget vestibulum tellus. Integer a ultricies turpis.
+				</p>
+				<span id="author">Ecrit avec amour par <span>Célia (à peu près)</span></span>
+			</div>
+
+			<div id="form">
+				<h2 class="yellow">Envie d'ajouter votre propre article ?</h2>
+				<form action="post.php" method="post">
+					<label>Titre</label><br>
+					<input type="text" name="title"><br>
+					<label>Contenu</label><br>
+					<textarea rows="10" cols="60" name="content"></textarea><br>
+					<label>Auteur</label><br>
+					<input type="text" name="author">
+					<input id="submit_button" type="submit" value="Envoyer">
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div id="footer">
+		<div>
+			<i class="fas fa-meteor yellow big_icon"></i>
+			<p>
+				Design inspiré par <a href="https://www.behance.net/gallery/57065493/CAUworking-One-Page"
+					target="_blank">Carlos Silva</a>
+				<br><br><br><br>Webserv par <i class="fas fa-user-astronaut yellow"></i> amartin-, jgonfroy et celeloup.
+				<br></p>
+
+		</div>
+	</div>
+</body>
+
 </html>

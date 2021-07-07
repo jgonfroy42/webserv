@@ -1,10 +1,10 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Welcome to WEBSERV !</title>
-  </head>
-  <body>
-	  <h1>You are on webserv.</h1>
+<head>
+	<title>Welcome to WEBSERV !</title>
+</head>
+<body>
+	<h1>You are on webserv.</h1>
 	<p>Nothing much to see here ... are you disappointed ?</p>
-  </body>
+</body>
 </html>

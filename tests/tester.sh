@@ -122,9 +122,9 @@ else
 fi
 
 #client body
-curl -s http://localhost:8080/blog/post.php -d "ahaah" -o tmp_res
+curl -s http://localhost:8080/blog/post.php -d "ahaahaaaaa" -o tmp_res
 STATUS_OUR="$(sed -n 3p tmp_res)"
-STATUS_TRUE="$(sed -n 8p requests/other/max_client_body_size.resp)"
+STATUS_TRUE="$(sed -n 3p requests/misc/client_body.resp)"
 if [ "$STATUS_OUR" == "$STATUS_TRUE" ]; then
 		printf "%-2s${GREEN}✅${EOC} client max body size\n"
 else

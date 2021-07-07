@@ -1,1 +1,1 @@
-you can't read me
+you can't read me (if you chmod 000 me first because you can't push files when you don't have the right on it)
