@@ -36,7 +36,7 @@ A [42 school](https://www.42.fr/) project where the goal is to write an HTTP ser
  </tr>
 </table>
     
-📌 [Subject](https://github.com/jgonfroy42/webserv/webserv_subject.pdf) (July 2021 version)    
+📌 [Subject](https://github.com/jgonfroy42/webserv/blob/master/webserv_subject.pdf) (July 2021 version)    
 By [amartin-menadier](https://github.com/amartin-menadier), [jgonfroy42](https://github.com/jgonfroy42) and [celeloup](https://github.com/celeloup).
 
 ## 🛠️ Usage
